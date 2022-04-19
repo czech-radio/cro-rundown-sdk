@@ -4,6 +4,9 @@
 .DS_Store
 *.pickle
 
+/data/source/*.xml
+/data/target/*.xml
+
 # Byte-compiled / optimized / DLL files
 
 __pycache__/

@@ -7,7 +7,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 
 
-from cro.rundown._domain import Station,  StationType
+from cro.rundown.sdk._domain import Station,  StationType
 
 
 __all__ = tuple(["RundownCleaner", "clean_rundown", "station_mapping"])

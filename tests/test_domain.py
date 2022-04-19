@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+
 import pytest
 
-from cro.broadcast.extracting.domain.respondent import Respondent
+
+from cro.rundown.sdk._domain import Respondent
 
 
-def test_model():
+def test_respondent_model():
 
     respondent = Respondent(
         openmedia_id="UUID",
@@ -16,7 +19,3 @@ def test_model():
     assert respondent.given_name == "David"
     assert respondent.family_name == "Landa"
     assert respondent.labels == ["programmer"]
-
-
-def test_parsing():
-    ...
