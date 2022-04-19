@@ -18,18 +18,20 @@ __all__ = tuple(["main"])
 
 def main():
     """
-    - 1. Get a directory e.g `data/source` and list all XML files.
-    - 2. Clean each XML file.
-    - 3: Result write to the output folder e.g. `data/target`.
+    1. Get a directory e.g `data/source` and list all XML files.
+    2. Clean each XML file.
+    3: Result write to the output folder e.g. `data/target`.
 
-    ? batch vs async stream
+    Use batch or (async) stream?
     """
     try:
         parser = argparse.ArgumentParser(
             description="The rundown XML files cleaning and parsing."
         )
 
-        parser.add_argument("-v", "--version", help="The package version.")
+        parser.add_argument(
+            "-v", "--version", action="store_true", help="The package version."
+        )
         parser.add_argument(
             "-V", "--verbose", action="store_true", help="The verbose execution."
         )
@@ -43,7 +45,15 @@ def main():
 
         options = parser.parse_args()
 
-        verbose = options.verbose
+        if options.help:
+            parser.print_help()
+            sys.exit(1)
+
+        if options.version:
+            from cro.rundown.sdk import __version__
+
+            print(__version__)
+            sys.exit(0)
 
         match options.source:
             case None:

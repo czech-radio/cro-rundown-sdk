@@ -26,8 +26,8 @@ jobs:
             - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip
-                  python -m pip install --editable ".[test,lint,docs,web]"
-                  python -c "import cro.schedule.sdk"
+                  python -m pip install --editable ".[test,lint,docs]"
+                  python -c "import cro.rundown.sdk"
             - name: Format the code
               run: |
                   black --check . --exclude docs/ data/
@@ -43,4 +43,3 @@ jobs:
               run: |
                   pip install pytest
                   python -X utf8 -m pytest -m domain
-                  python -X utf8 -m pytest -m client
