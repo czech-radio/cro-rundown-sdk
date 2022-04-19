@@ -3,14 +3,11 @@
 
 import datetime
 import xml.etree.ElementTree as ET
-
-from pathlib import Path
 from collections import OrderedDict
-from typing import List, Optional, Generator, Tuple
-
+from pathlib import Path
+from typing import Generator, List, Optional, Tuple
 
 __all__ = tuple(["RundownParser"])
-
 
 
 def parse_rundown(xml):
@@ -25,10 +22,10 @@ def parse_rundown(xml):
         # > Sub Rundown(s) OM_OBJECT(s)
         for sr in hr.findall('.//*[@TemplateName="Sub Rundown"]'):
 
-            for od in sr.findall('.//OM_RECORD'):
+            for od in sr.findall(".//OM_RECORD"):
 
-                for ob in od.findall('.//OM_OBJECT'):
-                    header = ob.find('.//OM_HEADER')
+                for ob in od.findall(".//OM_OBJECT"):
+                    header = ob.find(".//OM_HEADER")
                     # print(f'<{hr.tag} {hr.attrib["ObjectID"]} {hr.attrib["TemplateName"]}><{sr.tag} {sr.attrib["ObjectID"]} {sr.attrib["TemplateName"]}><{ob.tag} {ob.attrib["TemplateName"]}')
                     match ob.attrib["TemplateName"]:
                         case "Radio Story":
@@ -39,7 +36,6 @@ def parse_rundown(xml):
                             # print(f'{"Sudio"}: {ob.attrib["ObjectID"]}')
 
     return tree
-
 
 
 class RundownParser:
@@ -129,7 +125,6 @@ class RundownParser:
                                 labels = self._extract_labels(om_object)
                                 gender = self._extract_gender(om_object)
                                 affiliation = self._extract_affiliation(om_object)
-
 
                                 yield path, OrderedDict(
                                     [

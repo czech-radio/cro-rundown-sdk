@@ -2,7 +2,6 @@
 
 import pytest
 
-
 from cro.rundown.sdk._domain import Respondent
 
 

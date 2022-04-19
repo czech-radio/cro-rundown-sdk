@@ -4,18 +4,17 @@
 WORK IN PROGRESS
 """
 
-from typing import NamedTuple, List
+from typing import List, NamedTuple
 from xml.etree.ElementTree import fromstring
-
 
 __all__ = tuple(["Rundown", "Respondent"])
 
 
+from dataclasses import InitVar, dataclass, field
 from typing import NamedTuple
-from dataclasses import dataclass, field, InitVar
-
 
 # >>> internal
+
 
 @dataclass(frozen=True)
 class NonEmptyString:
@@ -57,6 +56,7 @@ class Respondent:
     """
     A respondent extracted form the rundown file.
     """
+
     def __init__(
         self,
         openmedia_id: str,
@@ -125,11 +125,10 @@ class Station:
 
 
 class Rundown:
-
     def __init__(self, date, station: Station):
         self.date = date
         self.station = station
 
     @property
-    def records(self) -> tuple['Record']:
+    def records(self) -> tuple["Record"]:
         return tuple([])

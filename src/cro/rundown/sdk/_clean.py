@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
 
-from copy import deepcopy
-from typing import List
-from pathlib import Path
 import xml.etree.ElementTree as ET
+from copy import deepcopy
+from pathlib import Path
+from typing import List
 
-
-from cro.rundown.sdk._domain import Station,  StationType
-
+from cro.rundown.sdk._domain import Station, StationType
 
 __all__ = tuple(["RundownCleaner", "clean_rundown", "station_mapping"])
 
@@ -49,7 +47,6 @@ station_mapping = {
 }
 
 
-
 def clean_rundown(tree: ET.ElementTree) -> ET.ElementTree:
     """
     Clean the rundown XML file.
@@ -58,49 +55,60 @@ def clean_rundown(tree: ET.ElementTree) -> ET.ElementTree:
     - Remove all unused nodes:
       -
     """
-    tree = deepcopy(tree) # Be sure you don't modify the original tree!
+    tree = deepcopy(tree)  # Be sure you don't modify the original tree!
 
     # > Radio Rundown OM_OBJECT: only one node.
     rr = tree.find('.//*[@TemplateName="Radio Rundown"]')
 
-    header = rr.find('./OM_HEADER')
+    header = rr.find("./OM_HEADER")
     for field in header.findall('*[@IsEmpty="yes"]'):
         header.remove(field)
 
-    for field in header.findall('./OM_FIELD'):
-        if field.attrib["FieldID"] not in "8 5016 1005 1000 5081 6 5070 5072 5082 12 321".split():
+    for field in header.findall("./OM_FIELD"):
+        if (
+            field.attrib["FieldID"]
+            not in "8 5016 1005 1000 5081 6 5070 5072 5082 12 321".split()
+        ):
             header.remove(field)
 
     # Clean OM_RECORD(S)
-    for omr in rr.findall('.//OM_RECORD'):
+    for omr in rr.findall(".//OM_RECORD"):
 
         for field in omr.findall('*[@IsEmpty="yes"]'):
             omr.remove(field)
 
-        for field in omr.findall('./OM_FIELD'):
-            if field.attrib["FieldID"] not in "8 5016 1005 1000 5081 6 5070 5072 5082 12 321".split():
+        for field in omr.findall("./OM_FIELD"):
+            if (
+                field.attrib["FieldID"]
+                not in "8 5016 1005 1000 5081 6 5070 5072 5082 12 321".split()
+            ):
                 omr.remove(field)
 
-        for field in omr.findall('./OM_UPLINK'):
+        for field in omr.findall("./OM_UPLINK"):
             omr.remove(field)
 
     # Clean OM_OBJECT(s)
-    for omb in rr.findall('.//OM_OBJECT'):
+    for omb in rr.findall(".//OM_OBJECT"):
 
-        header = omb.find('.//OM_HEADER')
+        header = omb.find(".//OM_HEADER")
         for field in header.findall('*[@IsEmpty="yes"]'):
             header.remove(field)
 
-        for field in header.findall('./OM_FIELD'):
-            if field.attrib["FieldID"] not in "8 5016 1005 1000 5081 6 5070 5072 5082 12 321".split():
+        for field in header.findall("./OM_FIELD"):
+            if (
+                field.attrib["FieldID"]
+                not in "8 5016 1005 1000 5081 6 5070 5072 5082 12 321".split()
+            ):
                 header.remove(field)
 
-        for field in omb.findall('./OM_FIELD'):
-            if field.attrib["FieldID"] not in "8 5016 1005 1000 5081 6 5070 5072 5082 12 321".split():
+        for field in omb.findall("./OM_FIELD"):
+            if (
+                field.attrib["FieldID"]
+                not in "8 5016 1005 1000 5081 6 5070 5072 5082 12 321".split()
+            ):
                 omb.remove(field)
 
-        for field in omb.findall('./OM_UPLINK'):
+        for field in omb.findall("./OM_UPLINK"):
             omb.remove(field)
-
 
     return tree
