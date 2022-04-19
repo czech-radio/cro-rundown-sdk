@@ -3,7 +3,7 @@
 [RELEASES](https://github.com/czech-radio/cro-rundown-sdk/releases/) | [WEBSITE](https://czech-radio.github.io/cro-rundown-sdk/)
 
 ![language](https://img.shields.io/badge/language-Python_v3.10+-blue.svg)
-![version](https://img.shields.io/badge/version-1.0.0_alpha-blue.svg)
+![version](https://img.shields.io/badge/version-0.2.0-blue.svg)
 [![main](https://github.com/czech-radio/cro-rundown-sdk/actions/workflows/main.yml/badge.svg)](https://github.com/czech-radio/cro-rundown-sdk/actions/workflows/main.yml)
 <!-- [![reliability](https://sonarcloud.io/api/project_badges/measure?project=czech-radio_cro-rundown-sdk&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=czech-radio_cro-rundown-sdk) -->
 
