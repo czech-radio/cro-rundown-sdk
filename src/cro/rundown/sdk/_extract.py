@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
 
+import argparse
 import datetime
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 from pathlib import Path
-from typing import Generator, List, Optional, Tuple
+from typing import Dict, Generator, List, Optional, Tuple
+
+import pandas as pd
+from loguru import logger
+from tqdm import tqdm
 
 __all__ = tuple(["RundownParser", "ParseRundown"])
 
@@ -284,3 +289,132 @@ class RundownParser:
 
     def _extract_affiliation(self, element: ET.Element) -> Optional[str]:
         return self._extract_text_from_header_field(element=element, field_id=5015)
+
+
+# ########################################################################### #
+# ########################################################################### #
+# ########################################################################### #
+#          PARSE THE GIVEN XML RUNDOWN FILES AND WRITE DATA TO CSV.
+# ########################################################################### #"
+# ########################################################################### #"
+# ########################################################################### #"
+
+STATON_CODE_NAME: Dict[int, str] = {
+    3: "UN",
+    5: "CR",
+    11: "RZ",
+    13: "PS",
+    15: "DV",
+    17: "VL",
+    19: "WA",
+    21: "RJ",
+    23: "ZV",
+    31: "RD",
+    33: "SC",
+    35: "PN",
+    37: "KV",
+    39: "SE",
+    41: "LB",
+    43: "HK",
+    45: "PC",
+    47: "CB",
+    49: "VY",
+    51: "BO",
+    53: "OL",
+    55: "OV",
+    57: "ZL",
+    73: "RG",
+    75: "RE",
+}
+
+
+def main():
+    """
+    Reads and parse openmedia XML files and acquires the broadcast data
+    for future data manual cleanning.
+    """
+    import os
+    import sys
+
+    from dotenv import load_dotenv
+
+    load_dotenv()  # Take environment variables from `.env`.
+
+    try:
+        parser = argparse.ArgumentParser(
+            description="The respondent mathching (pairing)."
+        )
+        parser.add_argument(
+            "-w", "--week", required=True, help="A week number in form `MM`."
+        )
+        # TODO: month | period
+        parser.add_argument(
+            "-y", "--year", required=True, help="A year number in form `YYYY`."
+        )
+        options = parser.parse_args()
+
+        year: int = options.year
+        week: int = (
+            f"0{options.week}" if int(options.week) < 9 else options.week
+        )  # Prepend with zero.
+
+        RUNDOWN_EXPORT_PATH = os.getenv("RUNDOWN_EXPORT_PATH")
+
+        print(RUNDOWN_EXPORT_PATH)
+
+        import_path = Path(RUNDOWN_EXPORT_PATH) / f"{year}" / f"W{week}"
+        export_path = Path(f"G:/My Drive/Rozhlas/Analytics/Source/{year} Zpravodajství")
+
+        # ========================================================================
+        # Task 1: Parse XML files.
+        # ========================================================================
+        # if int(week) < 9: week = f"0{week}" # Prepend with zero when.
+
+        # Note thath the path depends on your locale e.g. G:\My Drive vs G:\Můj disk
+        output_file_name = f"DATA_{year}W{week}.xlsx"
+        output_file_path = export_path / output_file_name
+
+        parser = RundownParser(path=import_path)
+
+        result: Dict[str, list] = {}
+
+        with tqdm() as pbar:
+            for file, data in parser:
+                if data is None:
+                    pbar.write(f"PROCESSING FILE FAILURE: {file.stem}")
+                else:
+                    result[data.values()] = data
+                    pbar.write(f"PROCESSING FILE SUCCESS: {file.stem}")
+                pbar.update(1)
+
+        if parser.has_errors():
+            logger.error(parser.errors)
+
+        # ========================================================================
+        # Task 2. Write CSV and XLSX files.
+        # ========================================================================
+        # TODO Report and remove empty lists from result data.
+        df = pd.DataFrame([x for x in result.values() if len(x) > 0])
+
+        df.to_excel(output_file_path, sheet_name=f"SOURCE_W{week}", index_label="index")
+
+        logger.info("FINISHED with SUCCESS")
+
+    except IOError as ex:
+        # Save the file to the root folder when Google Drive fails.
+        # This is better then start from beginning :/
+        try:
+            # df.to_excel(
+            #     Path("./") / output_file_name,
+            #     sheet_name=f"SOURCE_W{week}",
+            #     index_label="index",
+            # )
+            logger.warning(f"The file was writen to the root folder: {ex}.")
+        except Exception as ex:
+            raise ex
+
+    except Exception as ex:
+        logger.error(ex)
+        logger.info("FINISHED with FAILURE")
+    finally:
+        logger.info("=====================")

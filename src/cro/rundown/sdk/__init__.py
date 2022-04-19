@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 
-from cro.rundown.sdk._cleanse import clean_rundown_file_content, clean_rundown_file_name
-from cro.rundown.sdk._extract import RundownParser as RundownParser, parse_rundown
-
+from cro.rundown.sdk._cleanse import (clean_rundown_file_content,
+                                      clean_rundown_file_name)
+from cro.rundown.sdk._extract import RundownParser as RundownParser
+from cro.rundown.sdk._extract import parse_rundown
 
 __all__ = tuple(
     [

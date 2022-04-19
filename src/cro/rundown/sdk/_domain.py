@@ -5,14 +5,12 @@ WORK IN PROGRESS
 """
 
 import datetime as dt
+from dataclasses import dataclass
 from typing import List, Optional
-from xml.etree.ElementTree import ElementTree, fromstring
+from xml.etree.ElementTree import ElementTree
 
 __all__ = tuple(["Rundown", "Respondent", "Station"])
 
-
-from dataclasses import InitVar, dataclass, field
-from typing import NamedTuple
 
 # >>> internal
 
