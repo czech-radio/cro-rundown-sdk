@@ -16,7 +16,7 @@ __all__ = tuple(["main"])
 
 
 def main():
-    """
+    """Clean (normalize) rundowns.
     1. Get a directory e.g `data/source` and list all XML files.
     2. Clean each XML file.
     3: Result write to the output folder e.g. `data/target`.
@@ -61,13 +61,13 @@ def main():
         sys.exit(0)
 
     match options.source:
-        case None:
+        case None: # Default source directory?
             source_dir = Path("./data/source/")
         case _:
             source_dir = Path(options.source)
 
     match options.target:
-        case None:
+        case None: # Default target directory?
             target_dir = Path("./data/target/")
         case _:
             target_dir = Path(options.target)
@@ -94,7 +94,10 @@ def main():
             print("Success")
             sys.exit(0)
 
+        # TODO Dump a processed files statistics as CSV: `source file name`, `target file name`
+
     except Exception as ex:
         print(f"Failure: {str(ex)}, {processed_files[-1]}")
+        # TODO Dump all succesfully processed files (CSV) to be able to skip them in another run.
         raise ex
         sys.exit(1)
