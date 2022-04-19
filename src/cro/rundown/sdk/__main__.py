@@ -7,8 +7,11 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from cro.rundown.sdk._clean import (clean_rundown_file_content,
-                                    clean_rundown_file_name, station_mapping)
+from cro.rundown.sdk._clean import (
+    clean_rundown_file_content,
+    clean_rundown_file_name,
+    station_mapping,
+)
 from cro.rundown.sdk._domain import Station
 from cro.rundown.sdk._parse import parse_rundown
 
