@@ -5,6 +5,7 @@ import pytest
 from cro.rundown.sdk._domain import Respondent
 
 
+@pytest.mark.domain
 def test_respondent_model():
 
     respondent = Respondent(

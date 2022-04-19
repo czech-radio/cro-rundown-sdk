@@ -19,6 +19,7 @@ XML file (know as _Rundown_) exported from OpenMedia broadcast system. Feel free
 - [ ] Organize (sort) the rundowns.
 - [ ] Normalize (clean) the rundowns.
 - [ ] Extract (parse) the data from rundowns.
+- [ ] Check: get inof what will be executed.
 
 Use `cro.rundown.parse` command to: &hellip;
 
