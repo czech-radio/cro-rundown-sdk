@@ -4,10 +4,11 @@
 WORK IN PROGRESS
 """
 
-from typing import List, NamedTuple
-from xml.etree.ElementTree import fromstring
+import datetime as dt
+from typing import List, Optional
+from xml.etree.ElementTree import ElementTree, fromstring
 
-__all__ = tuple(["Rundown", "Respondent"])
+__all__ = tuple(["Rundown", "Respondent", "Station"])
 
 
 from dataclasses import InitVar, dataclass, field
@@ -124,11 +125,38 @@ class Station:
     type: StationType
 
 
+@dataclass(frozen=True)
+class Record:
+    since: dt.time
+    till: dt.time
+    respondents: tuple[Respondent]
+
+
 class Rundown:
-    def __init__(self, date, station: Station):
+    """
+    The rundown domain model.
+    """
+
+    def __init__(
+        self,
+        date,
+        station: Station,
+        cleaned_content: ElementTree,
+        cleaned_name: str,
+        original_name: Optional[str] = None,
+        original_content: Optional[ElementTree] = None,
+    ):
         self.date = date
         self.station = station
+        self.cleaned_name = cleaned_name
+        self.original_name = original_name
+        self.cleaned_content = cleaned_content
+        self.original_content = original_content
 
     @property
-    def records(self) -> tuple["Record"]:
+    def records(self) -> tuple[Record]:
         return tuple([])
+
+    # == equality
+    # >  ordering
+    # hash

@@ -8,7 +8,14 @@ from typing import List
 
 from cro.rundown.sdk._domain import Station, StationType
 
-__all__ = tuple(["RundownCleaner", "clean_rundown", "station_mapping"])
+__all__ = tuple(
+    [
+        "RundownCleaner",
+        "clean_rundown_file_content",
+        "clean_rundown_file_name",
+        "station_mapping",
+    ]
+)
 
 
 class RundownCleaner:
@@ -22,6 +29,7 @@ class RundownCleaner:
         self._errors: List = []
 
 
+# See the https://github.com/czech-radio/organization/blob/master/source/01%20Broadcast%20Analytics/03%20Specification.md
 station_mapping = {
     "Plus": Station(11, "Plus", StationType.NATIONWIDE),
     "Radiožurnál": Station(13, "Radiožurnál", StationType.NATIONWIDE),
@@ -44,10 +52,43 @@ station_mapping = {
     "ČRo_Pardubice": Station(0, "ČRo_Pardubice", StationType.REGIONAL),
     "ČRo_Olomouc": Station(0, "ČRo_Olomouc", StationType.REGIONAL),
     "ČRo_Karlovy_Vary": Station(0, "ČRo_Karlovy_Vary", StationType.REGIONAL),
+    "ČRo_České_Budějovice": Station(0, "ČRo_České_Budějovice", StationType.REGIONAL),
+    "ČRo_Region": Station(0, "ČRo_Region", StationType.REGIONAL),
+    "Junior": Station(0, "Junior", StationType.NATIONWIDE),
+    "Radio_Prague_International": Station(
+        0, "Radio_Prague_International", StationType.NATIONWIDE
+    ),  # ???
 }
 
 
-def clean_rundown(tree: ET.ElementTree) -> ET.ElementTree:
+class RundownCleanErrror(Exception):
+    ...
+
+
+def clean_rundown_file_name(source: str) -> str:
+
+    hour, other = source.stem[3:8], source.stem[9:]
+    hour = tuple(hour.split("-"))
+
+    date = other.split("_")[-1]
+    year, month, day = date[:4], date[4:6], date[6:8]
+
+    if "-" in other:
+        station = other.split("-")[0]
+    else:
+        station = "".join([i for i in other if not i.isdigit()])
+
+    station = station.strip("_")  # Remove trailing `_`.
+    station = station_mapping[station]  # Get station model.
+
+    # Return tuple year, name (@todo: This is hack to be able to save the file to the `year` folder.)
+    return (
+        year,
+        f"RUNDOWN_{year}-{month}-{day}_{hour[0]}-{hour[1]}_{station.type.name[0]}_{station.name.replace('_','-').replace('ČRo-', '')}",
+    )
+
+
+def clean_rundown_file_content(tree: ET.ElementTree) -> ET.ElementTree:
     """
     Clean the rundown XML file.
 
