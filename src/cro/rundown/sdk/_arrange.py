@@ -7,7 +7,7 @@ from typing import Dict, List
 
 from tqdm import tqdm
 
-__all__ = tuple(("main"))
+__all__ = tuple(["main", "inspect", "organize"])
 
 
 def inspect(path: Path) -> Dict[date, List[Path]]:

@@ -9,27 +9,16 @@
 
 **Python library to work with Rozhlas rundowns.**
 
-**DISCLAIMER:** Althougt we develop this package as open sourc it is used internally for parsing specific type of
-XML (know as Rundowns) exported from OpenMedia broadcast system. Feel free to read the source code.
+**DISCLAIMER:** Althougt we develop this package as open-source it is used internally for parsing specific type of
+XML file (know as _Rundown_) exported from OpenMedia broadcast system. Feel free to read the source code.
 
 :star: Star us on GitHub — it motivates us!
 
-## Features
+## Features & Usage
 
 - [ ] Organize (sort) the rundowns.
 - [ ] Normalize (clean) the rundowns.
 - [ ] Extract (parse) the data from rundowns.
-
-## Install
-
-* We assume that you use at least Python 3.10.
-* We assume that you use the virtual environment.
-
-Install the package latest version from the GitHub repository.
-
-    pip install git+https://github.com/czech-radio/cro-rundown-sdk.git
-
-## Usage
 
 Use `cro.rundown.parse` command to: &hellip;
 
@@ -40,6 +29,15 @@ Use `cro.rundown.clean` command to: &hellip;
     cro.rundown.parse
 
 &hellip;
+
+## Installation
+
+* We assume that you use at least Python 3.10.
+* We assume that you use the virtual environment.
+
+Install the package latest version from the GitHub repository.
+
+    pip install git+https://github.com/czech-radio/cro-rundown-sdk.git
 
 ## Documentation
 

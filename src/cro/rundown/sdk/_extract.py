@@ -7,7 +7,7 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Generator, List, Optional, Tuple
 
-__all__ = tuple(["RundownParser"])
+__all__ = tuple(["RundownParser", "ParseRundown"])
 
 
 def parse_rundown(xml):
