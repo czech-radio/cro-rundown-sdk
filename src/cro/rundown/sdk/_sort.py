@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from datetime import date, datetime
 from pathlib import Path
 from typing import Dict, List
-from datetime import date, datetime
-from tqdm import tqdm
 
+from tqdm import tqdm
 
 __all__ = tuple(("main"))
 

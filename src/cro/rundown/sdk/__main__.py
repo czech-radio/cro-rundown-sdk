@@ -61,13 +61,13 @@ def main():
         sys.exit(0)
 
     match options.source:
-        case None: # Default source directory?
+        case None:  # Default source directory?
             source_dir = Path("./data/source/")
         case _:
             source_dir = Path(options.source)
 
     match options.target:
-        case None: # Default target directory?
+        case None:  # Default target directory?
             target_dir = Path("./data/target/")
         case _:
             target_dir = Path(options.target)
