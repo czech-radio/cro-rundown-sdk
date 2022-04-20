@@ -45,7 +45,7 @@ def parse_rundown(xml):
 
 class RundownParser:
     """
-    Parse OpenMedia XML files to get brodcast data for further analysis.
+    Parse rundown XML files to get a brodcast data for further analysis.
 
     >>> parser = RundownParser(path=Path("."))
     >>> for file, data in parser
@@ -75,7 +75,7 @@ class RundownParser:
 
     def __iter__(self) -> Generator[Tuple[object, dict], None, None]:
         """
-        Parse the XML rundown files one by one.
+        Parse the  rundown XML files one by one.
         TODO: Make the parsing concurent/parallel.
 
         :returns: The generator of parsed file objects.
@@ -106,6 +106,7 @@ class RundownParser:
                             "./OM_OBJECT[@TemplateName='Hourly Rundown']"
                         )
                     ) is None:
+                        # todo: Log this!
                         continue
 
                     for subrecord in subobject.findall("./OM_RECORD"):
@@ -178,9 +179,7 @@ class RundownParser:
             xpath=f"./OM_HEADER/OM_FIELD[@FieldID='{field_id}']/{element_name}",
         )
 
-    # ###################################################################### #
-    #  BROADCAST DATA                                                        #
-    # ###################################################################### #
+    # BROADCAST DATA #
 
     def _extract_title(self, om_object: ET.Element) -> Optional[str]:
         """
@@ -266,9 +265,7 @@ class RundownParser:
             element=header, xpath="./OM_FIELD[@FieldID='321']/OM_INT32"
         )
 
-    # ###################################################################### #
-    # RESPONDENT DATA                                                        #
-    # ###################################################################### #
+    # RESPONDENT DATA #
 
     def _extract_unique_id(self, element: ET.Element) -> Optional[str]:
         return self._extract_text_from_header_field(element=element, field_id=5087)

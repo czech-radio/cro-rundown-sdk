@@ -16,20 +16,29 @@ XML file (know as _Rundown_) exported from OpenMedia broadcast system. Feel free
 
 ## Features & Usage
 
-- [ ] Organize (sort) the rundowns.
-- [ ] Normalize (clean) the rundowns.
-- [ ] Extract (parse) the data from rundowns.
-- [ ] Check: get inof what will be executed.
+- [ ] Arrange the rundown files.
+- [ ] Cleanse the rundown files.
+- [ ] Extract the rundown datas.
 
-Use `cro.rundown.parse` command to: &hellip;
+(Todo: Add `--check` option what rundowns will be affected by running specified command.)
 
-    cro.rundown.clean
+### The `arrange` command
 
-Use `cro.rundown.clean` command to: &hellip;
+Use `cro.rundown.arrange` command to: &hellip;
 
-    cro.rundown.parse
+    cro.rundown.arrange [--source]
 
-&hellip;
+### The `cleanse` command
+
+Use `cro.rundown.cleanse` command to: &hellip;
+
+    cro.rundown.cleanse [--source]
+
+### The `extract` command
+
+Use `cro.rundown.extract` command to: &hellip;
+
+    cro.rundown.extract [--source]
 
 ## Installation
 
@@ -40,10 +49,11 @@ Install the package latest version from the GitHub repository.
 
     pip install git+https://github.com/czech-radio/cro-rundown-sdk.git
 
-## Documentation
-
-The complete documentation soon&hellip;
-
 ## Contribution
 
 See the document [here](/.github\CONTRIBUTING.md)
+
+
+## Documentation
+
+The complete documentation soon&hellip;

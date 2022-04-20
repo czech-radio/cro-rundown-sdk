@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+
 """
-WORK IN PROGRESS
+A domain model values, entities and services.
 """
+
 
 import datetime as dt
 from dataclasses import dataclass
@@ -10,7 +12,6 @@ from typing import List, Optional
 from xml.etree.ElementTree import ElementTree
 
 __all__ = tuple(["Rundown", "Respondent", "Station"])
-
 
 # >>> internal
 

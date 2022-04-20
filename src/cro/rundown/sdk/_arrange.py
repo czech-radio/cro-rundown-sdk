@@ -1,13 +1,50 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+import os
 import sys
 from datetime import date, datetime
 from pathlib import Path
 from typing import Dict, List
 
+from dotenv import load_dotenv
 from tqdm import tqdm
 
+load_dotenv()  # # Take environment variables from `.env`.
+
+from cro.rundown.sdk._shared import failure_msg, success_msg
+
 __all__ = tuple(["main", "inspect", "organize"])
+
+
+def main() -> None:
+    """
+    Arrgantge the rundown files in specified source directory.
+    """
+
+    parser = argparse.ArgumentParser(description="The `rundown-arrange` program.")
+
+    parser.add_argument(
+        "-s", "--source", required=False, help="The rundown source directory path."
+    )
+
+    options = parser.parse_args()
+
+    match options.source:
+        case None:
+            source = Path(os.getenv("RUNDOWN_EXPORT_PATH"))
+        case _:
+            source: str = Path(options.source)
+
+    try:
+        sorted_rundowns = inspect(source)
+        print(f"PREPARE: Rundowns {len(sorted_rundowns.items())}")
+        organize(source, sorted_rundowns)
+        print(success_msg(f"Rundowns {len(sorted_rundowns.items())}"))
+
+    except Exception as ex:
+
+        print(failure_msg(ex))
 
 
 def inspect(path: Path) -> Dict[date, List[Path]]:
@@ -73,16 +110,3 @@ def organize(directory: Path, sorted_rundowns: Dict[date, List[Path]]) -> None:
                 status = f"FAILURE: {file_path} | {ex}"
             finally:
                 pass  # REMOVE print(status)
-
-
-def main() -> None:
-    """
-    Run the main program pipeline: ``inspect | sort | organize`` .
-    """
-    path = Path(sys.argv[1]) or "\\cro.cz\srv\annova\export-avo"
-
-    sorted_rundowns = inspect(path)
-
-    print(f"Number of days to process: {len(sorted_rundowns.items())}")
-
-    organize(path, sorted_rundowns)
