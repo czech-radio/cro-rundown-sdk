@@ -5,7 +5,7 @@
 ![language](https://img.shields.io/badge/language-Python_v3.10+-blue.svg)
 ![version](https://img.shields.io/badge/version-0.2.0-blue.svg)
 [![main](https://github.com/czech-radio/cro-rundown-sdk/actions/workflows/main.yml/badge.svg)](https://github.com/czech-radio/cro-rundown-sdk/actions/workflows/main.yml)
-<!-- [![reliability](https://sonarcloud.io/api/project_badges/measure?project=czech-radio_cro-rundown-sdk&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=czech-radio_cro-rundown-sdk) -->
+[![reliability](https://sonarcloud.io/api/project_badges/measure?project=czech-radio_cro-rundown-sdk&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=czech-radio_cro-rundown-sdk)
 
 **Python library to work with Rozhlas rundowns.**
 
@@ -16,8 +16,8 @@ XML file (know as _Rundown_) exported from OpenMedia broadcast system. Feel free
 
 ## Features & Usage
 
-- [ ] Arrange the rundown files.
-- [ ] Cleanse the rundown files.
+- [x] Arrange the rundown files.
+- [x] Cleanse the rundown files.
 - [ ] Extract the rundown datas.
 
 (Todo: Add `--check` option what rundowns will be affected by running specified command.)
@@ -36,7 +36,7 @@ Use `cro.rundown.cleanse` command to: &hellip;
 
 ### The `extract` command
 
-Use `cro.rundown.extract` command to: &hellip;
+Use `cro.rundown.extract` command to extract the broadcast data from the rundown XML files.
 
     cro.rundown.extract [--source]
 
