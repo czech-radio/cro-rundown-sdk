@@ -16,27 +16,29 @@ XML file (know as _Rundown_) exported from OpenMedia broadcast system. Feel free
 
 ## Features & Usage
 
-- [x] Arrange the rundown files.
-- [x] Cleanse the rundown files.
-- [ ] Extract the rundown datas.
+- [x] Arrange rundown files.
+- [ ] Compress rundown files
+- [x] Cleanse rundown files.
+- [ ] Extract rundown datas.
 
 (Todo: Add `--check` option what rundowns will be affected by running specified command.)
 
 ### The `arrange` command
 
-Use `cro.rundown.arrange` command to: &hellip;
+Use `cro.rundown.arrange` command to arrange the rundown files.
 
-    cro.rundown.arrange [--source]
+    cro.rundown.arrange --source <path>                             e.g.
+    cro.rundown.arrange --source \\cro.cz\srv\annova\export-avo
 
 ### The `cleanse` command
 
-Use `cro.rundown.cleanse` command to: &hellip;
+Use `cro.rundown.cleanse` command to cleanse the rundown files.
 
     cro.rundown.cleanse [--source]
 
 ### The `extract` command
 
-Use `cro.rundown.extract` command to extract the broadcast data from the rundown XML files.
+Use `cro.rundown.extract` command to extract data from rundown files.
 
     cro.rundown.extract [--source]
 

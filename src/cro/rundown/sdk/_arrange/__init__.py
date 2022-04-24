@@ -10,19 +10,20 @@ from typing import Dict, List
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-load_dotenv()  # # Take environment variables from `.env`.
-
 from cro.rundown.sdk._shared import failure_msg, success_msg
 
 __all__ = tuple(["main", "inspect", "organize"])
 
 
+load_dotenv()  # # Take environment variables from `.env`.
+
+
 def main() -> None:
     """
-    Arrgantge the rundown files in specified source directory.
+    Arrange the rundown files in the given directory.
     """
 
-    parser = argparse.ArgumentParser(description="The `rundown-arrange` program.")
+    parser = argparse.ArgumentParser(description="The `cro.rundown.arrange` program.")
 
     parser.add_argument(
         "-s", "--source", required=False, help="The rundown source directory path."
@@ -38,9 +39,9 @@ def main() -> None:
 
     try:
         sorted_rundowns = inspect(source)
-        print(f"PREPARE: Rundowns {len(sorted_rundowns.items())}")
+        print(f"PREPARE: Rundown {len(sorted_rundowns.values())}")
         organize(source, sorted_rundowns)
-        print(success_msg(f"Rundowns {len(sorted_rundowns.items())}"))
+        print(success_msg(f"Rundowns {len(sorted_rundowns.items())} processed"))
 
     except Exception as ex:
 

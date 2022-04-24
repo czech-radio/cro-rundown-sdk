@@ -16,14 +16,15 @@ from cro.rundown.sdk._shared import failure_msg, success_msg
 
 __all__ = tuple(
     [
-        "station_mapping",
+        "STATION_MAPPING",
         "clean_rundown_file_name",
         "clean_rundown_file_content",
     ]
 )
 
-# See the https://github.com/czech-radio/organization/blob/master/source/01%20Broadcast%20Analytics/03%20Specification.md
-station_mapping = {
+
+# Maps the station ID to station object.
+STATION_MAPPING: dict[str, Station] = {
     "Plus": Station(11, "Plus", StationType.NATIONWIDE),
     "Radiožurnál": Station(13, "Radiožurnál", StationType.NATIONWIDE),
     "Dvojka": Station(0, "Dvojka", StationType.NATIONWIDE),
@@ -50,7 +51,7 @@ station_mapping = {
     "Junior": Station(0, "Junior", StationType.NATIONWIDE),
     "Radio_Prague_International": Station(
         0, "Radio_Prague_International", StationType.NATIONWIDE
-    ),  # ???
+    ),
 }
 
 
@@ -68,9 +69,7 @@ def main():
     Use batch or (async) stream?
     """
 
-    parser = argparse.ArgumentParser(
-        description="The rundown XML files cleaning and parsing."
-    )
+    parser = argparse.ArgumentParser(description="The `cro.rundown.cleanse` program.")
 
     parser.add_argument(
         "-v",
@@ -146,14 +145,16 @@ def main():
         # tree.write(target_dir / year / f"{name}.xml", encoding="utf8")
 
         if verbose:
-            print(success_message())
+            print(success_msg())
             sys.exit(0)
 
-        # TODO Dump a processed files statistics as CSV: `source file name`, `target file name`
+        # TODO Dump a processed files statistics as CSV:
+        # `source file name`, `target file name`
 
     except Exception as ex:
         print(f"Failure: {str(ex)}, {processed_files[-1]}")
-        # TODO Dump all succesfully processed files (CSV) to be able to skip them in another run.
+        # TODO Dump all succesfully processed files (CSV) to be
+        # able to skip them in another run.
         raise ex
         sys.exit(1)
 
@@ -174,13 +175,15 @@ def clean_rundown_file_name(source: str) -> str:
         station = "".join([i for i in other if not i.isdigit()])
 
     station = station.strip("_")  # Remove trailing `_`.
-    station = station_mapping[station]  # Get station model.
+    station = STATION_MAPPING[station]  # Get station model.
 
-    # Return tuple year, name (@todo: This is hack to be able to save the file to the `year` folder.)
-    return (
-        year,
-        f"RUNDOWN_{year}-{month}-{day}_{hour[0]}-{hour[1]}_{station.type.name[0]}_{station.name.replace('_','-').replace('ČRo-', '')}",
-    )
+    # Return tuple (year, name).
+    # @todo: This is hack to be able to save the file to the `year` folder.
+
+    clean_station_name = station.name.replace("_", "-").replace("ČRo-", "")
+    file_prefix_name = f"RUNDOWN_{year}-{month}-{day}_{hour[0]}-{hour[1]}"
+
+    return (year, file_prefix_name + f"_{station.type.name[0]}_{clean_station_name}")
 
 
 def clean_rundown_file_content(tree: ET.ElementTree) -> ET.ElementTree:
