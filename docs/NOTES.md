@@ -1,4 +1,3 @@
-
 # Extrakce dat z Rundown XML
 
 ## Co chceme získat
@@ -83,7 +82,14 @@ Ve strutuře XML jsme u bodu __[1]__:
     </OM_HEADER>
     <!-- END -->
     <!-- [2] -->
-    <OM_RECORD RecordID="3">...</OM_RECORD>
+    <OM_RECORD RecordID="3">
+        <OM_OBJECT>
+            <OM_HEADER>...</OM_HEADER>
+            <OM_RECORD>
+                <!-- [3] -->
+            <OM_RECORD>
+        </OM_OBJECT>
+    </OM_RECORD>
     <OM_RECORD RecordID="4">...</OM_RECORD>
     <OM_RECORD RecordID="5">...</OM_RECORD>
     <!-- END -->
@@ -91,7 +97,7 @@ Ve strutuře XML jsme u bodu __[1]__:
 </OPENMEDIA>
 ```
 
-Pro každou plánovanou hodinu je v uzlu _Radio Rundown_ vložen uzel `<OM_RECORD`>. Jako příklad, pro planované vysílání od 10 do 13 hodin, bude obsahovat tři uzly `<OM_RECORD>` viz bod __[2]__, pro každou hodinu jeden tj. 10-11, 11-12, 12-13. Každý takový záznam tedy chceme získat a dále z každého získat pro danou hodinu všechny dostupné informace. _Record_ obsahuje pole `<OM_FIELD>` z nihž nic nepotřebujeme a dále uzel `<OM_OBJECT TemplateName="Hourly Rundown">`, který nazýváme _Hourly Rundown_. Objekt _Hourly Rundown_ obsahuje v hlavičce jedinou využitelnou informaci pro _hodinový blok_
+Pro každou plánovanou hodinu je v uzlu _Radio Rundown_ vložen uzel `<OM_RECORD`>. Jako příklad, pro planované vysílání od 10 do 13 hodin, bude obsahovat tři uzly `<OM_RECORD>` viz bod __[2]__, pro každou hodinu jeden tj. 10-11, 11-12, 12-13. Každý takový záznam tedy chceme získat a dále z každého získat pro danou hodinu všechny dostupné informace. _Record_ obsahuje pole `<OM_FIELD>` z nichž nic nepotřebujeme a dále uzel `<OM_OBJECT TemplateName="Hourly Rundown">`, který nazýváme _Hourly Rundown_. Objekt _Hourly Rundown_ obsahuje v hlavičce jedinou využitelnou informaci pro _hodinový blok_
 
 ```xml
 <OM_HEADER>
@@ -101,9 +107,9 @@ Pro každou plánovanou hodinu je v uzlu _Radio Rundown_ vložen uzel `<OM_RECOR
 </OM_HEADER>
 ```
 
-Objekt _Hourly Rundown_ dále obsahuje kolekci uzlů `<OM_RECORD>` např. pět...
+Uzel _Hourly Rundown Object_ dále obsahuje kolekci uzlů `<OM_RECORD>` např. pět...
 
-Ze uzlu _Record_ získáme
+Ze každého uzlu _Record_ získáme
 
 ```xml
 <OM_FIELD FieldType="1" FieldID="5001" FieldName="Template Name (String)" IsEmpty="no">
