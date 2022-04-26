@@ -225,7 +225,7 @@ class RundownParser:
                         editorial = self._extract_editorial(record)
                         approved_station = self._extract_approved_station(record)  # schválil redakce
                         approved_editorial = self._extract_approved_editorial(record)   # schválil stanice
-                        title2 = self._extract_title(record)
+                        title = self._extract_title(record)
                         topic = self._extract_topic(record)
                         # audio_dur = 1036
                         target = self._extract_text(record, "./OM_FIELD[@FieldID='5079']/OM_STRING") # cíl výroby
@@ -237,10 +237,10 @@ class RundownParser:
 
                             subtitle = self._extract_title(header)
                             format = self._extract_format(header)
-                            topic2 = self._extract_topic(header)
-                            incode = self._extract_incode(header)
                             itemcode = self._extract_itemcode(header)
+                            incode = self._extract_incode(header)
 
+                            # >>> Parse respondet data.
                             # for om_object in record.findall(
                             #     ".//OM_OBJECT[@TemplateName='Contact Item']"
                             # ):
@@ -250,18 +250,22 @@ class RundownParser:
                             #     labels = self._extract_labels(om_object)
                             #     gender = self._extract_gender(om_object)
                             #     affiliation = self._extract_affiliation(om_object)
+                            # <<<
                             data = OrderedDict(
                                 [
+                                    # ANOVA DATA
                                     # ("oid", oid),
                                     # ("tn", otn),
+                                    # BROADCAST DATA
+                                    ("station", station_id), # TODO: Add alo station name.
                                     ("date", date),
-                                    ("duration", str(round(float(duration) / 1000 / 600, 1)) ),
-                                    ("station_id", station_id),
+                                    ("time", hour_block),
+                                    # TODO: Add `since` (datum začátku).
+                                    ("duration", str(round(float(duration) / 1000 / 600, 1)) ), # ms to min
                                     ("target", target),
-                                    ("incode", incode),
                                     ("itemcode", itemcode),
+                                    ("incode", incode),
                                     ("title", title),
-                                    ("title2", title2),
                                     ("subtitle", subtitle),
                                     ("format", format),
                                     ("author", author),
@@ -270,7 +274,7 @@ class RundownParser:
                                     ("approved_station", approved_station),
                                     ("approved_editorial", approved_editorial),
                                     ("topic", topic),
-                                    # ("topic2", topic2),
+                                    # RESPONDENT DATA
                                     # ("openmedia_id", openmedia_id),
                                     # ("given_name", given_name),
                                     # ("family_name", family_name),
@@ -280,9 +284,7 @@ class RundownParser:
                                 ]
                             )
                             data_cleaned = { k: str(v).strip() for k, v in data.items() if v is not None}
-
-                            # DEBUG
-                            # print(  "|".join([f"{v}" for k, v in data_cleaned.items()])  )
+                            # print(  "|".join([f"{v}" for k, v in data_cleaned.items()]) ) # DEBUG
 
                             yield path, data_cleaned
 
