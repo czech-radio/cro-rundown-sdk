@@ -19,7 +19,7 @@ XML file (know as _Rundown_) exported from OpenMedia broadcast system. Feel free
 - [x] Arrange rundown files.
 - [ ] Compress rundown files
 - [x] Cleanse rundown files.
-- [ ] Extract rundown datas.
+- [x] Extract rundown datas.
 
 (Todo: Add `--check` option what rundowns will be affected by running specified command.)
 

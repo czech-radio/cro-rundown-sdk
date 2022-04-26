@@ -6,7 +6,6 @@ import sys
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 from pathlib import Path
-from sre_constants import SUCCESS
 from typing import List
 
 from tqdm import tqdm
@@ -16,7 +15,8 @@ from cro.rundown.sdk._shared import failure_msg, success_msg
 
 __all__ = tuple(
     [
-        "STATION_MAPPING",
+        "STATON_CODE_TO_NAME",
+        "STATION_NAME_TO_OBJECT",
         "clean_rundown_file_name",
         "clean_rundown_file_content",
     ]
@@ -24,7 +24,7 @@ __all__ = tuple(
 
 
 # Maps the station ID to station object.
-STATION_MAPPING: dict[str, Station] = {
+STATION_NAME_TO_OBJECT: dict[str, Station] = {
     "Plus": Station(11, "Plus", StationType.NATIONWIDE),
     "Radiožurnál": Station(13, "Radiožurnál", StationType.NATIONWIDE),
     "Dvojka": Station(0, "Dvojka", StationType.NATIONWIDE),
@@ -52,6 +52,35 @@ STATION_MAPPING: dict[str, Station] = {
     "Radio_Prague_International": Station(
         0, "Radio_Prague_International", StationType.NATIONWIDE
     ),
+}
+
+# Maps the station numeric code to short name (abbreviation) and station long name tuple.
+STATON_CODE_TO_NAME: dict[int, str] = {
+    3: ("UN", None),  # TODO: Write stationa name
+    5: ("CR", None),
+    11: ("RZ", None),
+    13: ("PS", None),
+    15: ("DV", None),
+    17: ("VL", None),
+    19: ("WA", None),
+    21: ("RJ", None),
+    23: ("ZV", None),
+    31: ("RD", None),
+    33: ("SC", None),
+    35: ("PN", None),
+    37: ("KV", None),
+    39: ("SE", None),
+    41: ("LB", None),
+    43: ("HK", None),
+    45: ("PC", None),
+    47: ("CB", None),
+    49: ("VY", None),
+    51: ("BO", None),
+    53: ("OL", None),
+    55: ("OV", None),
+    57: ("ZL", None),
+    73: ("RG", None),
+    75: ("RE", None),
 }
 
 
@@ -175,7 +204,7 @@ def clean_rundown_file_name(source: str) -> str:
         station = "".join([i for i in other if not i.isdigit()])
 
     station = station.strip("_")  # Remove trailing `_`.
-    station = STATION_MAPPING[station]  # Get station model.
+    station = STATION_NAME_TO_OBJECT[station]  # Get station model.
 
     # Return tuple (year, name).
     # @todo: This is hack to be able to save the file to the `year` folder.
