@@ -98,9 +98,9 @@ def main():
             for file, data in parser:
                 if data is None:
                     pbar.write(f"PROCESSING FILE FAILURE: {file.stem}")
-                # else:
-                #     result[data.values()] = data
-                #     pbar.write(f"PROCESSING FILE SUCCESS: {file.stem}")
+                else:
+                    result[data.values()] = data
+                    # pbar.write(f"PROCESSING FILE SUCCESS: {file.stem}")
                 pbar.update(1)
 
         if parser.has_errors():
@@ -112,7 +112,7 @@ def main():
         # TODO Report and remove empty lists from result data.
         df = pd.DataFrame([x for x in result.values() if len(x) > 0])
 
-        df.to_excel(output_file_path, sheet_name=f"SOURCE_W{week}", index_label="index")
+        df.to_excel(output_file_path, sheet_name=f"SOURCE_W{week}", index=False)
 
         logger.info("FINISHED with SUCCESS")
 
@@ -191,16 +191,15 @@ class RundownParser:
                     PROCESED_FILES[path.stem] = "NOT PROCESSED"
                     continue
 
-                date = self._extract_date(header = radio_rundown[0])
-                hours_station_date: str = self._extract_station_date_hours(header = radio_rundown[0])
+                date = self._extract_date(radio_rundown[0])
+                hours_station_date: str = self._extract_station_date_hours(radio_rundown[0])
 
                 # [2]
                 for record in (hourly_rundown_records := radio_rundown[1:]):
 
-                    time = self._extract_time(record)
+
                     station_id = self._extract_station_id(record)
                     title = self._extract_title(record)
-                    duration = self._extract_duration(record)
 
                     if (
                         hourly_rundown_object := record.find(
@@ -218,17 +217,25 @@ class RundownParser:
 
                     for record in hourly_rundown_object.findall("./OM_RECORD"):
 
+                        # duration = self._extract_duration(record)
+                        # if duration is None: duration = "0"
+
                         author = self._extract_author(record) # OM_FIELD
                         creator = self._extract_creator(record) # OM_FIELD
                         editorial = self._extract_editorial(record)
-                        approved = self._extract_approved(record)
+                        approved_station = self._extract_approved_station(record)  # schválil redakce
+                        approved_editorial = self._extract_approved_editorial(record)   # schválil stanice
                         title2 = self._extract_title(record)
                         topic = self._extract_topic(record)
-                        # audio_dur = 1%36
+                        # audio_dur = 1036
+                        target = self._extract_text(record, "./OM_FIELD[@FieldID='5079']/OM_STRING") # cíl výroby
 
                         for obj in record.findall('.//OM_OBJECT[@TemplateName="Radio Story"]'):
                             header = obj.find("./OM_HEADER")
-                            subtitle = self._extract_subtitle(header)
+                            duration = self._extract_time(header)
+                            if duration is None: duration = "0"
+
+                            subtitle = self._extract_title(header)
                             format = self._extract_format(header)
                             topic2 = self._extract_topic(header)
                             incode = self._extract_incode(header)
@@ -247,22 +254,23 @@ class RundownParser:
                                 [
                                     # ("oid", oid),
                                     # ("tn", otn),
-                                    # ("date", date),
-                                    # ("block", hour_block),
-                                    # ("time", time),
-                                    # ("station_id", station_id),
-                                    ("duration", duration),
+                                    ("date", date),
+                                    ("duration", str(round(float(duration) / 1000 / 600, 1)) ),
+                                    ("station_id", station_id),
+                                    ("target", target),
+                                    ("incode", incode),
+                                    ("itemcode", itemcode),
                                     ("title", title),
                                     ("title2", title2),
                                     ("subtitle", subtitle),
                                     ("format", format),
                                     ("author", author),
                                     ("creator", creator),
-                                    ("approved", approved),
                                     ("editorial", editorial),
-                                    ("incode", incode),
-                                    ("itemcode", itemcode),
+                                    ("approved_station", approved_station),
+                                    ("approved_editorial", approved_editorial),
                                     ("topic", topic),
+                                    # ("topic2", topic2),
                                     # ("openmedia_id", openmedia_id),
                                     # ("given_name", given_name),
                                     # ("family_name", family_name),
@@ -271,8 +279,13 @@ class RundownParser:
                                     # ("affiliation", affiliation),
                                 ]
                             )
-                            print(  "|".join([f"{v}" for k, v in data.items()])  )
-                            yield path, data
+                            data_cleaned = { k: str(v).strip() for k, v in data.items() if v is not None}
+
+                            # DEBUG
+                            # print(  "|".join([f"{v}" for k, v in data_cleaned.items()])  )
+
+                            yield path, data_cleaned
+
             except Exception as ex:
                 self._errors.append((str(path), str(ex)))
                 yield path, None
@@ -325,10 +338,8 @@ class RundownParser:
         text = self._extract_text(element, "./OM_FIELD[@FieldID='1000']/OM_DATETIME")
         return text if text is None else str(datetime.datetime.strptime(text.split("T")[0], "%Y%m%d").date())
 
-    def _extract_time(self, om_record: ET.Element) -> Optional[str]:
-        return self._extract_text(
-            element=om_record, xpath="./OM_FIELD[@FieldID='8']/OM_STRING"
-        )
+    def _extract_time(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='1036']/OM_TIMESPAN")
 
     def _extract_station_id(self, header: ET.Element) -> Optional[str]:
         return self._extract_text(
@@ -340,35 +351,26 @@ class RundownParser:
             element=header, xpath="./OM_FIELD[@FieldID='6']/OM_STRING"
         )
 
-    def _extract_creator(self, header: ET.Element) -> Optional[str]:
-        return self._extract_text(
-            element=header, xpath="./OM_FIELD[@FieldID='5']/OM_STRING"
-        )
+    def _extract_creator(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='5']/OM_STRING")
 
-    def _extract_approved(self, header: ET.Element) -> Optional[str]:
-        return self._extract_text(
-            element=header, xpath="./OM_FIELD[@FieldID='5070']/OM_STRING"
-        )
+    def _extract_approved_station(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='5071']/OM_STRING")
 
-    def _extract_incode(self, header: ET.Element) -> Optional[str]:
-        return self._extract_text(
-            element=header, xpath="./OM_FIELD[@FieldID='5072']/OM_STRING"
-        )
+    def _extract_approved_editorial(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='5070']/OM_STRING")
 
-    def _extract_itemcode(self, header: ET.Element) -> Optional[str]:
-        return self._extract_text(
-            element=header, xpath="./OM_FIELD[@FieldID='5082']/OM_STRING"
-        )
+    def _extract_incode(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='5072']/OM_STRING")
 
-    def _extract_editorial(self, header: ET.Element) -> Optional[str]:
-        return self._extract_text(
-            element=header, xpath="./OM_FIELD[@FieldID='12']/OM_STRING"
-        )
+    def _extract_itemcode(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='5082']/OM_STRING")
 
-    def _extract_format(self, header: ET.Element) -> Optional[str]:
-        return self._extract_text(
-            element=header, xpath="./OM_FIELD[@FieldID='321']/OM_INT32"
-        )
+    def _extract_editorial(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='12']/OM_STRING")
+
+    def _extract_format(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='321']/OM_INT32")
 
     # RESPONDENT DATA #
 
