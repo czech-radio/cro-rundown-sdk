@@ -1,109 +1,18 @@
 # -*- coding: utf-8 -*-
 
+"""
+The rundown file data extraction.
+"""
 
-import argparse
+from __future__ import annotations
+
 import datetime
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, Generator, List, Optional, Tuple
 
-import pandas as pd
-from loguru import logger
-from tqdm import tqdm
-
 __all__ = tuple(["RundownParser"])
-
-
-def main():
-    """
-    Reads and parse openmedia XML files and acquires the broadcast data
-    for future data manual cleanning.
-    """
-    import os
-
-    from dotenv import load_dotenv
-
-    load_dotenv()  # Take environment variables from `.env`.
-
-    parser = argparse.ArgumentParser(description="The respondent mathching (pairing).")
-    parser.add_argument(
-        "-w", "--week", required=True, help="A week number in form `MM`."
-    )
-    # TODO: month | period
-    parser.add_argument(
-        "-y", "--year", required=True, help="A year number in form `YYYY`."
-    )
-    options = parser.parse_args()
-
-    year: int = options.year
-    week: int = (
-        f"0{options.week}" if int(options.week) < 9 else options.week
-    )  # Prepend with zero.
-
-    try:
-        RUNDOWN_IMPORT_PATH = os.getenv("RUNDOWN_IMPORT_PATH_TEST_LOCAL")
-        RUNDOWN_EXPORT_PATH = os.getenv("RUNDOWN_EXPORT_PATH_TEST_LOCAL")
-
-        import_path = Path(f"{RUNDOWN_IMPORT_PATH}/{year}/W{week}")
-        export_path = Path(f"{RUNDOWN_EXPORT_PATH}/{year}/W{week}")
-
-        print(import_path)
-        print(export_path)
-
-        # ========================================================================
-        # Task 1: Parse XML files.
-        # ========================================================================
-        # if int(week) < 9: week = f"0{week}" # Prepend with zero when.
-
-        # Note thath the path depends on your locale e.g. G:\My Drive vs G:\Můj disk
-        output_file_name = f"DATA_{year}W{week}.xlsx"
-        output_file_path = export_path / output_file_name
-
-        parser = RundownParser(path=import_path)
-
-        result: Dict[str, list] = {}
-
-        with tqdm() as pbar:
-            for file, data in parser:
-                if data is None:
-                    pbar.write(f"PROCESSING FILE FAILURE: {file.stem}")
-                else:
-                    result[data.values()] = data
-                    # pbar.write(f"PROCESSING FILE SUCCESS: {file.stem}")
-                pbar.update(1)
-
-        if parser.has_errors():
-            logger.error(parser.errors)
-
-        # ========================================================================
-        # Task 2. Write CSV and XLSX files.
-        # ========================================================================
-        # TODO Report and remove empty lists from result data.
-        df = pd.DataFrame([x for x in result.values() if len(x) > 0])
-
-        df.to_excel(output_file_path, sheet_name=f"SOURCE_W{week}", index=False)
-
-        logger.info("FINISHED with SUCCESS")
-
-    except IOError as ex:
-        # Save the file to the root folder when Google Drive fails.
-        # This is better then start from beginning :/
-        try:
-            df.to_excel(
-                Path("./") / output_file_name,
-                sheet_name=f"SOURCE_W{week}",
-                index=False,
-            )
-            logger.warning(f"The file was writen to the root folder: {ex}.")
-        except Exception as ex:
-            raise ex
-
-    except Exception as ex:
-        logger.error(ex)
-        logger.info("FINISHED with FAILURE")
-    finally:
-        logger.info("=====================")
 
 
 class RundownParser:
@@ -115,26 +24,29 @@ class RundownParser:
             ... # process data
     """
 
-    def __init__(self, path: Path) -> None:
-        if not path.is_dir():
-            raise ValueError("Path must be a directory.")
-        self._path: Path = path
+    def __init__(self) -> None:
+        self._files = []
         self._errors: List = []
 
     @property
-    def path(self) -> Path:
-        return self._path
-
-    @path.setter
-    def path(self, path: Path) -> None:
-        self._path = path
+    def files(self) -> tuple[Path]:
+        return tuple(self._files)
 
     @property
     def errors(self) -> List:
-        return self._errors.copy()
+        return tuple(self._errors)
 
     def has_errors(self) -> bool:
         return len(self.errors) > 0
+
+    def __call__(self, directory: Path | str) -> RundownParser:
+        if not directory.is_dir():
+            raise ValueError("The given path  must be a directory.")
+
+        self._files = [
+            path for path in Path(directory).glob("**/*.xml") if path.is_file()
+        ]
+        return self
 
     def __iter__(self) -> Generator[Tuple[object, dict], None, None]:
         """
@@ -144,9 +56,7 @@ class RundownParser:
         :returns: The generator of parsed file objects.
         """
         # Load all rundown XML files in the given path (recursively)
-        for path in Path(self.path).glob("**/*.xml"):
-            if not path.is_file():
-                continue
+        for path in self._files:
 
             PROCESED_FILES: dict[str, str] = {}
 
