@@ -4,8 +4,9 @@
 .DS_Store
 *.pickle
 
-/data/source/*.xml
-/data/target/*.xml
+/data/source/**/*.xml
+/data/target/**/*.xml
+/data/target/**/*.xlsx
 
 # Byte-compiled / optimized / DLL files
 

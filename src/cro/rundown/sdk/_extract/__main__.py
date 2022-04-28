@@ -4,11 +4,16 @@
 import argparse
 import os
 from pathlib import Path
+import logging
+from time import time
+import xml.etree.ElementTree as ET
+
 
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 from tqdm import tqdm
+
 
 from cro.rundown.sdk import RundownParser
 
@@ -20,34 +25,41 @@ def main():
 
     load_dotenv()  # Take environment variables from `.env`.
 
-    parser = argparse.ArgumentParser(description="The respondent mathching (pairing).")
+    parser = argparse.ArgumentParser(description="The `cro.rundown.extract` program.")
+
     parser.add_argument(
         "-w", "--week", required=True, help="A week number in form `MM`."
     )
+
     # TODO: month | period
+
     parser.add_argument(
         "-y", "--year", required=True, help="A year number in form `YYYY`."
     )
+
+    parser.add_argument("--verbose", action="store_true")
+
     options = parser.parse_args()
 
     year: int = options.year
     week: int = (
         f"0{options.week}" if int(options.week) < 9 else options.week
-    )  # Prepend with zero.
+    )
 
     try:
-        RUNDOWN_IMPORT_PATH = os.getenv("RUNDOWN_IMPORT_PATH_TEST_LOCAL")
-        RUNDOWN_EXPORT_PATH = os.getenv("RUNDOWN_EXPORT_PATH_TEST_LOCAL")
 
-        import_path = Path(f"{RUNDOWN_IMPORT_PATH}/{year}/W{week}")
-        export_path = Path(f"{RUNDOWN_EXPORT_PATH}/{year}/W{week}")
+        # TODO: Check the paths, maybe set sensible defaults?
+        import_path = Path(f"{os.getenv('RUNDOWN_IMPORT_PATH_TEST_LOCAL')}/{year}/W{week}")
+        export_path = Path(f"{os.getenv('RUNDOWN_EXPORT_PATH_TEST_LOCAL')}/{year}/W{week}")
 
-        print(import_path)
-        print(export_path)
+        if options.verbose:
+            print(f"RUNDOWN IMPORT PATH: {import_path}")
+            print(f"RUNDOWN EXPORT PATH: {export_path}")
 
-        # ========================================================================
-        # Task 1: Parse XML files.
-        # ========================================================================
+        #
+        # [1] Parse XML files.
+        #
+
         # if int(week) < 9: week = f"0{week}" # Prepend with zero when.
 
         # Note thath the path depends on your locale e.g. G:\My Drive vs G:\Můj disk
@@ -56,27 +68,39 @@ def main():
 
         parser = RundownParser()
 
-        result: Dict[str, list] = {}
+        result: dict[str, list] = {}
+
+        # if not directory.is_dir():
+        #     raise ValueError("The given path  must be a directory.")
+
+        # Load all rundown XML files in the given path (recursively)
+        rundowns = {
+            path.stem: ET.parse(path) for path in Path(import_path).glob("**/*.xml") if path.is_file()
+        }
 
         with tqdm() as pbar:
-            for file, data in parser(directory=import_path):
+            start_time = time()
+            for file, data in parser(rundowns):
                 if data is None:
-                    pbar.write(f"PROCESSING FILE FAILURE: {file.stem}")
+                    pbar.write(f"PROCESSING FILE FAILURE: {file}")
                 else:
                     result[data.values()] = data
-                    # pbar.write(f"PROCESSING FILE SUCCESS: {file.stem}")
-                pbar.update(1)
+                    finish_time = time() - start_time
+                    pbar.write(f"PROCESSING FILE SUCCESS: {file} in {finish_time} seconds.")
+                # pbar.update(1)
 
         if parser.has_errors():
             logger.error(parser.errors)
 
-        # ========================================================================
-        # Task 2. Write CSV and XLSX files.
-        # ========================================================================
+        #
+        # [2] Write CSV and XLSX files.
+        #
+
         # TODO Report and remove empty lists from result data.
         df = pd.DataFrame([x for x in result.values() if len(x) > 0])
 
-        df.to_excel(output_file_path, sheet_name=f"SOURCE_W{week}", index=False)
+        with pd.ExcelWriter(output_file_path) as writer:
+            df.to_excel(writer, sheet_name=f"SOURCE_W{week}", index=False, header = True)
 
         logger.info("FINISHED with SUCCESS")
 
