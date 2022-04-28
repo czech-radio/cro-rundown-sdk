@@ -6,6 +6,7 @@ The rundown file data extraction.
 
 from __future__ import annotations
 
+import sys
 import datetime
 import datetime as dt
 import sys
@@ -210,11 +211,7 @@ class RundownParser:
 
     def _extract_date(self, element) -> Optional[str]:
         text = self._extract_text(element, "./OM_FIELD[@FieldID='1000']/OM_DATETIME")
-        return (
-            text
-            if text is None
-            else str(datetime.datetime.strptime(text.split("T")[0], "%Y%m%d").date())
-        )
+        return (text if text is None else str(datetime.datetime.strptime(text.split("T")[0], "%Y%m%d").date()))
 
     def _extract_time(self, element: ET.Element) -> Optional[str]:
         return self._extract_text(element, "./OM_FIELD[@FieldID='1003']/OM_DATETIME")

@@ -4,12 +4,16 @@
 import pytest
 
 
+
 @pytest.mark.skip
 @pytest.mark.service
 def test_rundown_cleanse():
     assert False
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4320dcd (Update date, time, duration parsing)
 @pytest.mark.skip
 @pytest.mark.service
 def test_rundown_arrange():
@@ -22,6 +26,7 @@ def test_rundown_compress():
     assert False
 
 
+<<<<<<< HEAD
 import io
 
 # Parser tests.
@@ -37,6 +42,20 @@ def rundown():
 
     """
     )
+=======
+# Parser tests.
+from cro.rundown.sdk import RundownParser
+
+import io
+
+@pytest.fixture
+def rundown():
+    return io.StringIO("""\
+        <
+
+
+    """)
+>>>>>>> 4320dcd (Update date, time, duration parsing)
 
 
 @pytest.mark.skip
