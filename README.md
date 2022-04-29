@@ -57,6 +57,12 @@ Use `cro.rundown.archive` command to archive data from rundown files.
 
     cro.rundown.archive -i . -o .
 
+### The `archive` command
+
+Use `cro.rundown.archive` command to archive data from rundown files.
+
+    cro.rundown.archive [--source]
+
 ## Installation
 
 * We assume that you use at least Python 3.10.
