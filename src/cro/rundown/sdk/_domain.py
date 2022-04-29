@@ -20,7 +20,6 @@ __all__ = tuple(["Rundown", "Respondent", "Station"])
 
 @dataclass(frozen=True)
 class NonEmptyString:
-
     value: str
 
     def __post_init__(self):
@@ -28,30 +27,15 @@ class NonEmptyString:
             raise ValueError("A value must be non empty string.")
 
 
-@dataclass(frozen=True)
-class Name(NonEmptyString):
-    ...
+Name = str
+GivenName = str
+FamilyName =  str
+Label = str
 
 
-@dataclass(frozen=True)
-class GivenName:
-    value: str
-
-
-@dataclass(frozen=True)
-class FamilyName:
-    value: str
-
-
-@dataclass(frozen=True)
 class FullName:
     given: GivenName
     family: FamilyName
-
-
-@dataclass(frozen=True, eq=True)
-class Label:
-    name: str
 
 
 class Respondent:

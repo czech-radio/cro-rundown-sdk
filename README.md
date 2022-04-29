@@ -16,8 +16,8 @@ XML file (know as _Rundown_) exported from OpenMedia broadcast system. Feel free
 
 ## Features & Usage
 
+- [ ] Archive rundown files
 - [x] Arrange rundown files.
-- [ ] Compress rundown files
 - [x] Cleanse rundown files.
 - [x] Extract rundown datas.
 
@@ -41,6 +41,12 @@ Use `cro.rundown.cleanse` command to cleanse the rundown files.
 Use `cro.rundown.extract` command to extract data from rundown files.
 
     cro.rundown.extract [--source]
+
+### The `archive` command
+
+Use `cro.rundown.archive` command to archive data from rundown files.
+
+    cro.rundown.archive [--source]
 
 ## Installation
 
