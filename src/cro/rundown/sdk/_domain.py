@@ -37,6 +37,7 @@ class Respondent:
     :param labels: The associated description labels e.g 'profession'.
     :param affiliation: The associated political affiliation e.g 'party name'.
     """
+
     id: str
     name: Name
     labels: List[str]
