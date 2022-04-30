@@ -50,18 +50,21 @@ Use `cro.rundown.extract` command to extract data from rundown files.
 
      cro.rundown.extract -i .\data\source\2021\W44\ -o .\data\target\2021\w44
      cro.rundown.extract --input .\data\source\2021\W44\ --output .\data\target\2021\w44
+<<<<<<< HEAD
 
 ### The `archive` command
 
 Use `cro.rundown.archive` command to archive data from rundown files.
 
     cro.rundown.archive -i . -o .
+=======
+>>>>>>> be2477d (Simplify parsing)
 
 ### The `archive` command
 
 Use `cro.rundown.archive` command to archive data from rundown files.
 
-    cro.rundown.archive [--source]
+    cro.rundown.archive -i . -o .
 
 ## Installation
 

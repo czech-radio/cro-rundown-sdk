@@ -15,7 +15,6 @@ from dotenv import load_dotenv
 from loguru import logger
 from tqdm import tqdm
 
-
 from cro.rundown.sdk import RundownParser
 
 
