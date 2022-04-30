@@ -89,7 +89,6 @@ def main():
 
             path = target_dir / year / f"{name}.xml"
 
-            tree: ET.ElementTree = tree
             with open(path, mode="wb+") as file:
                 tree.write(file, encoding="utf-8")
 
@@ -108,5 +107,4 @@ def main():
         print(f"Failure: {str(ex)}, {processed_files[-1]}")
         # TODO Dump all succesfully processed files (CSV) to be
         # able to skip them in another run.
-        raise ex
-        sys.exit(1)
+        raise ex # sys.exit(1)
