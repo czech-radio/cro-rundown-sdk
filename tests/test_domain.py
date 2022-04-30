@@ -2,7 +2,7 @@
 
 import pytest
 
-from cro.rundown.sdk._domain import Respondent, Name
+from cro.rundown.sdk._domain import Name, Respondent
 
 
 @pytest.mark.domain
