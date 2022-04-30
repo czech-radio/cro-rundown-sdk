@@ -1,109 +1,22 @@
 # -*- coding: utf-8 -*-
 
+"""
+The rundown file data extraction.
+"""
 
-import argparse
+from __future__ import annotations
+
 import datetime
+import datetime as dt
+import sys
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, Generator, List, Optional, Tuple
 
-import pandas as pd
 from loguru import logger
-from tqdm import tqdm
 
 __all__ = tuple(["RundownParser"])
-
-
-def main():
-    """
-    Reads and parse openmedia XML files and acquires the broadcast data
-    for future data manual cleanning.
-    """
-    import os
-
-    from dotenv import load_dotenv
-
-    load_dotenv()  # Take environment variables from `.env`.
-
-    parser = argparse.ArgumentParser(description="The respondent mathching (pairing).")
-    parser.add_argument(
-        "-w", "--week", required=True, help="A week number in form `MM`."
-    )
-    # TODO: month | period
-    parser.add_argument(
-        "-y", "--year", required=True, help="A year number in form `YYYY`."
-    )
-    options = parser.parse_args()
-
-    year: int = options.year
-    week: int = (
-        f"0{options.week}" if int(options.week) < 9 else options.week
-    )  # Prepend with zero.
-
-    try:
-        RUNDOWN_IMPORT_PATH = os.getenv("RUNDOWN_IMPORT_PATH_TEST_LOCAL")
-        RUNDOWN_EXPORT_PATH = os.getenv("RUNDOWN_EXPORT_PATH_TEST_LOCAL")
-
-        import_path = Path(f"{RUNDOWN_IMPORT_PATH}/{year}/W{week}")
-        export_path = Path(f"{RUNDOWN_EXPORT_PATH}/{year}/W{week}")
-
-        print(import_path)
-        print(export_path)
-
-        # ========================================================================
-        # Task 1: Parse XML files.
-        # ========================================================================
-        # if int(week) < 9: week = f"0{week}" # Prepend with zero when.
-
-        # Note thath the path depends on your locale e.g. G:\My Drive vs G:\Můj disk
-        output_file_name = f"DATA_{year}W{week}.xlsx"
-        output_file_path = export_path / output_file_name
-
-        parser = RundownParser(path=import_path)
-
-        result: Dict[str, list] = {}
-
-        with tqdm() as pbar:
-            for file, data in parser:
-                if data is None:
-                    pbar.write(f"PROCESSING FILE FAILURE: {file.stem}")
-                else:
-                    result[data.values()] = data
-                    # pbar.write(f"PROCESSING FILE SUCCESS: {file.stem}")
-                pbar.update(1)
-
-        if parser.has_errors():
-            logger.error(parser.errors)
-
-        # ========================================================================
-        # Task 2. Write CSV and XLSX files.
-        # ========================================================================
-        # TODO Report and remove empty lists from result data.
-        df = pd.DataFrame([x for x in result.values() if len(x) > 0])
-
-        df.to_excel(output_file_path, sheet_name=f"SOURCE_W{week}", index=False)
-
-        logger.info("FINISHED with SUCCESS")
-
-    except IOError as ex:
-        # Save the file to the root folder when Google Drive fails.
-        # This is better then start from beginning :/
-        try:
-            df.to_excel(
-                Path("./") / output_file_name,
-                sheet_name=f"SOURCE_W{week}",
-                index=False,
-            )
-            logger.warning(f"The file was writen to the root folder: {ex}.")
-        except Exception as ex:
-            raise ex
-
-    except Exception as ex:
-        logger.error(ex)
-        logger.info("FINISHED with FAILURE")
-    finally:
-        logger.info("=====================")
 
 
 class RundownParser:
@@ -115,173 +28,147 @@ class RundownParser:
             ... # process data
     """
 
-    def __init__(self, path: Path) -> None:
-        if not path.is_dir():
-            raise ValueError("Path must be a directory.")
-        self._path: Path = path
+    def __init__(self) -> None:
+        self._files = []
         self._errors: List = []
 
     @property
-    def path(self) -> Path:
-        return self._path
-
-    @path.setter
-    def path(self, path: Path) -> None:
-        self._path = path
-
-    @property
     def errors(self) -> List:
-        return self._errors.copy()
+        return tuple(self._errors)
 
-    def has_errors(self) -> bool:
-        return len(self.errors) > 0
-
-    def __iter__(self) -> Generator[Tuple[object, dict], None, None]:
+    def __call__(self, rundown: ET.ElementTree) -> Generator[OrderedDict, None, None]:
         """
         Parse the  rundown XML files one by one.
-        TODO: Make the parsing concurent/parallel.
+        TODO: Make the parsing concurrent/parallel.
 
         :returns: The generator of parsed file objects.
         """
-        # Load all rundown XML files in the given path (recursively)
-        for path in Path(self.path).glob("**/*.xml"):
-            if not path.is_file():
-                continue
+        try:
+            root = rundown.getroot()
 
-            PROCESED_FILES: dict[str, str] = {}
+            # [1] RADIO RUNDOWN OBJECT
+            if (
+                radio_rundown := root.find("./OM_OBJECT[@TemplateName='Radio Rundown']")
+            ) is None:
+                return "RADIO RUNDOWN NOT FOUND"
 
-            try:
-                root = ET.parse(path).getroot()
+            date = self._extract_date(radio_rundown[0])
+            hours_station_date: str = self._extract_station_date_hours(radio_rundown[0])
 
-                # [1] Radion Rundown
+            # [2] RADION RUNDOWN RECORDS
+            for record in (hourly_rundown_records := radio_rundown[1:]):
+
+                station_id = self._extract_station_id(record)
+                title = self._extract_title(record)
+
+                # [3] HOURLY RUNDOWN OBJECT
                 if (
-                    radio_rundown := root.find(
-                        "./OM_OBJECT[@TemplateName='Radio Rundown']"
+                    hourly_rundown_object := record.find(
+                        "./OM_OBJECT[@TemplateName='Hourly Rundown']"
                     )
                 ) is None:
-                    # Skip the file but report to statistics.
-                    PROCESED_FILES[path.stem] = "NOT PROCESSED"
-                    continue
+                    logger.error("NEOBSAHUJE HOURLY RUNDOWN")
+                    continue  # or sys.exit(1) ?
 
-                date = self._extract_date(radio_rundown[0])
-                hours_station_date: str = self._extract_station_date_hours(
-                    radio_rundown[0]
-                )
+                oid = hourly_rundown_object.attrib["ObjectID"]
+                otn = hourly_rundown_object.attrib["TemplateName"]
+                hour_block = self._extract_station_hour_block(hourly_rundown_object)
 
-                # [2]
-                for record in (hourly_rundown_records := radio_rundown[1:]):
+                # [4] HOURLY RUNDOWN RECORDS
+                for record in hourly_rundown_object.findall("./OM_RECORD"):
 
-                    station_id = self._extract_station_id(record)
+                    author = self._extract_author(record)
+                    creator = self._extract_creator(record)
+                    editorial = self._extract_editorial(record)
+                    approved_station = self._extract_approved_station(record)
+                    approved_editorial = self._extract_approved_editorial(record)
                     title = self._extract_title(record)
+                    topic = self._extract_topic(record)
+                    target = self._extract_target(record)
 
-                    if (
-                        hourly_rundown_object := record.find(
-                            "./OM_OBJECT[@TemplateName='Hourly Rundown']"
-                        )
-                    ) is None:
-                        # todo: Log this!
-                        print("NEOBSAHUJE HOURLY RUNDOWN")
-                        import sys
+                    # [5] RADIO STORY OBJECTS
+                    for obj in record.findall(
+                        './/OM_OBJECT[@TemplateName="Radio Story"]'
+                    ):
+                        header = obj.find("./OM_HEADER")
 
-                        sys.exit()
-                        continue
-
-                    oid = hourly_rundown_object.attrib["ObjectID"]
-                    otn = hourly_rundown_object.attrib["TemplateName"]
-                    hour_block = self._extract_station_hour_block(hourly_rundown_object)
-
-                    for record in hourly_rundown_object.findall("./OM_RECORD"):
-
-                        author = self._extract_author(record)  # OM_FIELD
-                        creator = self._extract_creator(record)  # OM_FIELD
-                        editorial = self._extract_editorial(record)
-                        approved_station = self._extract_approved_station(
-                            record
-                        )  # schválil redakce
-                        approved_editorial = self._extract_approved_editorial(
-                            record
-                        )  # schválil stanice
-                        title = self._extract_title(record)
-                        topic = self._extract_topic(record)
-                        target = self._extract_text(
-                            record, "./OM_FIELD[@FieldID='5079']/OM_STRING"
-                        )  # cíl výroby
-
-                        for obj in record.findall(
-                            './/OM_OBJECT[@TemplateName="Radio Story"]'
-                        ):
-                            header = obj.find("./OM_HEADER")
-                            duration = self._extract_time(header)
-                            if duration is None:
-                                duration = "0"
-
-                            subtitle = self._extract_title(header)
-                            format = self._extract_format(header)
-                            itemcode = self._extract_itemcode(header)
-                            incode = self._extract_incode(header)
-
-                            # >>> Parse respondet data.
-                            # for om_object in record.findall(
-                            #     ".//OM_OBJECT[@TemplateName='Contact Item']"
-                            # ):
-                            #     openmedia_id = self._extract_unique_id(om_object)
-                            #     given_name = self._extract_given_name(om_object)
-                            #     family_name = self._extract_family_name(om_object)
-                            #     labels = self._extract_labels(om_object)
-                            #     gender = self._extract_gender(om_object)
-                            #     affiliation = self._extract_affiliation(om_object)
-                            # <<<
-                            data = OrderedDict(
-                                [
-                                    # ANOVA DATA
-                                    # ("oid", oid),
-                                    # ("tn", otn),
-                                    # BROADCAST DATA
-                                    (
-                                        "station",
-                                        station_id,
-                                    ),  # TODO: Add alo station name.
-                                    ("date", date),
-                                    ("time", hour_block),
-                                    # TODO: Add `since` (datum začátku).
-                                    (
-                                        "duration",
-                                        str(round(float(duration) / 1000 / 600, 1)),
-                                    ),  # ms to min
-                                    ("target", target),
-                                    ("itemcode", itemcode),
-                                    ("incode", incode),
-                                    ("title", title),
-                                    ("subtitle", subtitle),
-                                    ("format", format),
-                                    ("author", author),
-                                    ("creator", creator),
-                                    ("editorial", editorial),
-                                    ("approved_station", approved_station),
-                                    ("approved_editorial", approved_editorial),
-                                    ("topic", topic),
-                                    # RESPONDENT DATA
-                                    # ("openmedia_id", openmedia_id),
-                                    # ("given_name", given_name),
-                                    # ("family_name", family_name),
-                                    # ("labels", labels),
-                                    # ("gender", gender),
-                                    # ("affiliation", affiliation),
-                                ]
+                        duration_maybe = self._extract_duration(header)
+                        if duration_maybe is not None:
+                            duration = "{:0>8}".format(
+                                str(
+                                    dt.timedelta(
+                                        seconds=float(duration_maybe)
+                                    ).total_seconds()
+                                )
                             )
-                            data_cleaned = {
-                                k: str(v).strip()
-                                for k, v in data.items()
-                                if v is not None
-                            }
-                            # print(  "|".join([f"{v}" for k, v in data_cleaned.items()]) ) # DEBUG
+                        else:
+                            duration = None
 
-                            yield path, data_cleaned
+                        format = self._extract_format(header)
+                        incode = self._extract_incode(header)
+                        itemcode = self._extract_itemcode(header)
+                        subtitle = self._extract_title(header)
 
-            except Exception as ex:
-                self._errors.append((str(path), str(ex)))
-                yield path, None
-                continue
+                        time_maybe = self._extract_time(header)
+                        if time_maybe is not None:
+                            time = dt.datetime.strptime(
+                                time_maybe, "%Y%m%dT%H%M%S,%f"
+                            ).time()
+                        else:
+                            time = None
+                        # >>> Parse respondet data.
+                        # for om_object in record.findall(
+                        #     ".//OM_OBJECT[@TemplateName='Contact Item']"
+                        # ):
+                        #     openmedia_id = self._extract_unique_id(om_object)
+                        #     given_name = self._extract_given_name(om_object)
+                        #     family_name = self._extract_family_name(om_object)
+                        #     labels = self._extract_labels(om_object)
+                        #     gender = self._extract_gender(om_object)
+                        #     affiliation = self._extract_affiliation(om_object)
+                        # <<<
+                        result = OrderedDict(
+                            [
+                                # ANOVA DATA
+                                # ("oid", oid),
+                                # ("tn", otn),
+                                # BROADCAST DATA
+                                ("station", station_id),
+                                ("date", date),
+                                ("block", hour_block),
+                                ("time", time),
+                                ("duration", duration),
+                                ("target", target),
+                                ("itemcode", itemcode),
+                                ("incode", incode),
+                                ("title", title),
+                                ("subtitle", subtitle),
+                                ("format", format),
+                                ("author", author),
+                                ("creator", creator),
+                                ("editorial", editorial),
+                                ("approved_station", approved_station),
+                                ("approved_editorial", approved_editorial),
+                                ("topic", topic),
+                                # RESPONDENT DATA
+                                # ("openmedia_id", openmedia_id),
+                                # ("given_name", given_name),
+                                # ("family_name", family_name),
+                                # ("labels", labels),
+                                # ("gender", gender),
+                                # ("affiliation", affiliation),
+                            ]
+                        )
+                        yield {
+                            k: str(v).strip()
+                            for k, v in result.items()
+                            if v is not None
+                        }
+
+        except Exception as ex:
+            logger.error(ex)
+            # self._errors.append((str(), str(ex)))
+            raise ex
 
     def _extract_text(self, element: ET.Element, xpath: str) -> Optional[str]:
         """
@@ -312,9 +199,6 @@ class RundownParser:
         """Extract the field with topic content."""
         return self._extract_text(element, "./OM_FIELD[@FieldID='5016']/OM_STRING")
 
-    def _extract_duration(self, element: ET.Element) -> Optional[str]:
-        return self._extract_text(element, "./OM_FIELD[@FieldID='1005']/OM_TIMESPAN")
-
     def _extract_station_date_hours(self, element):
         return self._extract_text(element, "./OM_FIELD[@FieldID='8']/OM_STRING")
 
@@ -325,9 +209,6 @@ class RundownParser:
         )
 
     def _extract_date(self, element) -> Optional[str]:
-        """
-        Extract the date.
-        """
         text = self._extract_text(element, "./OM_FIELD[@FieldID='1000']/OM_DATETIME")
         return (
             text
@@ -336,17 +217,19 @@ class RundownParser:
         )
 
     def _extract_time(self, element: ET.Element) -> Optional[str]:
-        return self._extract_text(element, "./OM_FIELD[@FieldID='1036']/OM_TIMESPAN")
+        return self._extract_text(element, "./OM_FIELD[@FieldID='1003']/OM_DATETIME")
 
-    def _extract_station_id(self, header: ET.Element) -> Optional[str]:
-        return self._extract_text(
-            element=header, xpath="./OM_FIELD[@FieldID='5081']/OM_INT32"
-        )
+    def _extract_target(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='5079']/OM_STRING")
 
-    def _extract_author(self, header: ET.Element) -> Optional[str]:
-        return self._extract_text(
-            element=header, xpath="./OM_FIELD[@FieldID='6']/OM_STRING"
-        )
+    def _extract_duration(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='1026']/OM_TIMESPAN")
+
+    def _extract_station_id(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='5081']/OM_INT32")
+
+    def _extract_author(self, element: ET.Element) -> Optional[str]:
+        return self._extract_text(element, "./OM_FIELD[@FieldID='6']/OM_STRING")
 
     def _extract_creator(self, element: ET.Element) -> Optional[str]:
         return self._extract_text(element, "./OM_FIELD[@FieldID='5']/OM_STRING")
@@ -372,21 +255,19 @@ class RundownParser:
     # RESPONDENT DATA #
 
     def _extract_unique_id(self, element: ET.Element) -> Optional[str]:
-        return self._extract_text_from_header_field(element=element, field_id=5087)
+        return self._extract_text_from_header_field(element, 5087)
 
     def _extract_given_name(self, element: ET.Element) -> Optional[str]:
-        return self._extract_text_from_header_field(element=element, field_id=421)
+        return self._extract_text_from_header_field(element, 421)
 
     def _extract_family_name(self, element: ET.Element) -> Optional[str]:
-        return self._extract_text_from_header_field(element=element, field_id=422)
+        return self._extract_text_from_header_field(element, 422)
 
     def _extract_labels(self, element: ET.Element) -> Optional[str]:
-        return self._extract_text_from_header_field(element=element, field_id=424)
+        return self._extract_text_from_header_field(element, 424)
 
     def _extract_gender(self, element: ET.Element) -> Optional[str]:
-        return self._extract_text_from_header_field(
-            element=element, field_id=5088, element_name="OM_INT32"
-        )
+        return self._extract_text_from_header_field(element, 5088, "OM_INT32")
 
     def _extract_affiliation(self, element: ET.Element) -> Optional[str]:
-        return self._extract_text_from_header_field(element=element, field_id=5015)
+        return self._extract_text_from_header_field(element, 5015)

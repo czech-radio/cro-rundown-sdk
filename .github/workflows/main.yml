@@ -11,6 +11,7 @@ jobs:
     build:
         runs-on: ${{ matrix.os }}
         strategy:
+            max-parallel: 12
             matrix:
                 os: [ubuntu-latest, windows-latest, macos-latest]
                 python-version: [3.10.3]
@@ -25,15 +26,20 @@ jobs:
 
             - name: Install dependencies
               run: |
-                  python -m pip install --upgrade pip
-                  python -m pip install --editable ".[test,lint,docs]"
+                  python -m pip install --upgrade pip --editable ".[test,lint,docs]"
+
+            - name: Check package installation
+              run: |
                   python -c "import cro.rundown.sdk"
-            - name: Format the code
+
+            - name: Check code format with 'black'
               run: |
-                  black --check . --exclude docs/ data/
-            - name: Sort the imports
+                  black . --check --exclude "(docs/|build/|dist/|\.git/|\.mypy_cache/|\.tox/|\.venv/\.asv/|env|\.eggs)"
+
+            - name: Check import order with 'isort'
               run: |
-                  isort .
+                  isort . --check
+
             - name: Lint the code
               run: |
                   #flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics

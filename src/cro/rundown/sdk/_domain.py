@@ -12,102 +12,37 @@ from enum import Enum
 from typing import List, Optional
 from xml.etree.ElementTree import ElementTree
 
-__all__ = tuple(["Rundown", "Respondent", "Station"])
-
-
-# >>> internal
+__all__ = tuple(["Rundown", "Respondent", "Station", "Name"])
 
 
 @dataclass(frozen=True)
-class NonEmptyString:
-
-    value: str
+class Name:
+    given: str
+    family: str
 
     def __post_init__(self):
-        if not self.value:
-            raise ValueError("A value must be non empty string.")
+        if self.given is None or len(self.given) == 0:
+            raise ValueError("The given name value must be non empty string.")
+        if self.family is None or len(self.family) == 0:
+            raise ValueError("The family name value must be non empty string.")
 
 
 @dataclass(frozen=True)
-class Name(NonEmptyString):
-    ...
-
-
-@dataclass(frozen=True)
-class GivenName:
-    value: str
-
-
-@dataclass(frozen=True)
-class FamilyName:
-    value: str
-
-
-@dataclass(frozen=True)
-class FullName:
-    given: GivenName
-    family: FamilyName
-
-
-@dataclass(frozen=True, eq=True)
-class Label:
-    name: str
-
-
 class Respondent:
     """
     A respondent extracted form the rundown file.
+
+    :param id: The idetifier stored in OpenMedia system.
+    :param name: The person name.
+    :param labels: The associated description labels e.g 'profession'.
+    :param affiliation: The associated political affiliation e.g 'party name'.
     """
 
-    def __init__(
-        self,
-        openmedia_id: str,
-        given_name: str,
-        family_name: str,
-        labels: List[str],
-        affiliation: str,
-    ):
-        self._full_name = FullName(GivenName(given_name), FamilyName(family_name))
-        self._labels: List[str] = labels
-        self._openmedia_id = openmedia_id
-        self._affiliation = affiliation
-        # gender
-
-    @property
-    def full_name(self) -> FullName:
-        return self._full_name
-
-    @property
-    def given_name(self) -> str:
-        return self.full_name.given.value
-
-    @property
-    def family_name(self) -> str:
-        return self.full_name.family.value
-
-    @property
-    def labels(self) -> List[str]:
-        return self._labels
-
-    @property
-    def political_affiliation(self):
-        return self._affiliation
-
-    def __str__(self) -> str:
-        return f"Respondent{self.full_name}, {self.labels}"
-
-    def __eq__(self, other) -> bool:
-        return (self.full_name, self.labels, self.political_affiliation) == (
-            other.full_name,
-            other.profession,
-            other.political_affiliation,
-        )
-
-    def __hash__(self) -> int:
-        return hash((self.full_name, self.labels, self.political_affiliation))
-
-
-# <<< internal
+    id: str
+    name: Name
+    labels: List[str]
+    affiliation: str
+    gender: str = None
 
 
 class StationType(Enum):

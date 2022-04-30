@@ -12,12 +12,6 @@ def test_rundown_cleanse():
 
 @pytest.mark.skip
 @pytest.mark.service
-def test_rundown_parse():
-    assert False
-
-
-@pytest.mark.skip
-@pytest.mark.service
 def test_rundown_arrange():
     assert False
 
@@ -25,4 +19,27 @@ def test_rundown_arrange():
 @pytest.mark.skip
 @pytest.mark.service
 def test_rundown_compress():
+    assert False
+
+
+import io
+
+# Parser tests.
+from cro.rundown.sdk import RundownParser
+
+
+@pytest.fixture
+def rundown():
+    return io.StringIO(
+        """\
+        <
+
+
+    """
+    )
+
+
+@pytest.mark.skip
+@pytest.mark.service
+def test_rundown_parse():
     assert False

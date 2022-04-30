@@ -3,7 +3,7 @@
 [RELEASES](https://github.com/czech-radio/cro-rundown-sdk/releases/) | [WEBSITE](https://czech-radio.github.io/cro-rundown-sdk/)
 
 ![language](https://img.shields.io/badge/language-Python_v3.10+-blue.svg)
-![version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![version](https://img.shields.io/badge/version-0.3.0-blue.svg)
 [![main](https://github.com/czech-radio/cro-rundown-sdk/actions/workflows/main.yml/badge.svg)](https://github.com/czech-radio/cro-rundown-sdk/actions/workflows/main.yml)
 [![reliability](https://sonarcloud.io/api/project_badges/measure?project=czech-radio_cro-rundown-sdk&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=czech-radio_cro-rundown-sdk)
 
@@ -16,8 +16,8 @@ XML file (know as _Rundown_) exported from OpenMedia broadcast system. Feel free
 
 ## Features & Usage
 
+- [ ] Archive rundown files
 - [x] Arrange rundown files.
-- [ ] Compress rundown files
 - [x] Cleanse rundown files.
 - [x] Extract rundown datas.
 
@@ -34,13 +34,20 @@ Use `cro.rundown.arrange` command to arrange the rundown files.
 
 Use `cro.rundown.cleanse` command to cleanse the rundown files.
 
-    cro.rundown.cleanse [--source]
+    cro.rundown.cleanse -i . -o .
 
 ### The `extract` command
 
 Use `cro.rundown.extract` command to extract data from rundown files.
 
-    cro.rundown.extract [--source]
+     cro.rundown.extract -i .\data\source\2021\W44\ -o .\data\target\2021\w44
+     cro.rundown.extract --input .\data\source\2021\W44\ --output .\data\target\2021\w44
+
+### The `archive` command
+
+Use `cro.rundown.archive` command to archive data from rundown files.
+
+    cro.rundown.archive -i . -o .
 
 ## Installation
 
