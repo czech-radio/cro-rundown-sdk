@@ -38,7 +38,7 @@ jobs:
 
             - name: Check import order with 'isort'
               run: |
-                  isort -c -df -rc .
+                  isort . --check
 
             - name: Lint the code
               run: |
