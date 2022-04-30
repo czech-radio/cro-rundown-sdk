@@ -6,9 +6,9 @@ The rundown file data extraction.
 
 from __future__ import annotations
 
-import sys
 import datetime
 import datetime as dt
+import sys
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 from pathlib import Path
@@ -48,16 +48,12 @@ class RundownParser:
 
             # [1] RADIO RUNDOWN OBJECT
             if (
-                radio_rundown := root.find(
-                    "./OM_OBJECT[@TemplateName='Radio Rundown']"
-                )
+                radio_rundown := root.find("./OM_OBJECT[@TemplateName='Radio Rundown']")
             ) is None:
-               return "RADIO RUNDOWN NOT FOUND"
+                return "RADIO RUNDOWN NOT FOUND"
 
             date = self._extract_date(radio_rundown[0])
-            hours_station_date: str = self._extract_station_date_hours(
-                radio_rundown[0]
-            )
+            hours_station_date: str = self._extract_station_date_hours(radio_rundown[0])
 
             # [2] RADION RUNDOWN RECORDS
             for record in (hourly_rundown_records := radio_rundown[1:]):
@@ -72,7 +68,7 @@ class RundownParser:
                     )
                 ) is None:
                     logger.error("NEOBSAHUJE HOURLY RUNDOWN")
-                    continue # or sys.exit(1) ?
+                    continue  # or sys.exit(1) ?
 
                 oid = hourly_rundown_object.attrib["ObjectID"]
                 otn = hourly_rundown_object.attrib["TemplateName"]
@@ -98,7 +94,13 @@ class RundownParser:
 
                         duration_maybe = self._extract_duration(header)
                         if duration_maybe is not None:
-                            duration = "{:0>8}".format(str(dt.timedelta(seconds=float(duration_maybe)).total_seconds()))
+                            duration = "{:0>8}".format(
+                                str(
+                                    dt.timedelta(
+                                        seconds=float(duration_maybe)
+                                    ).total_seconds()
+                                )
+                            )
                         else:
                             duration = None
 
@@ -109,7 +111,9 @@ class RundownParser:
 
                         time_maybe = self._extract_time(header)
                         if time_maybe is not None:
-                            time = dt.datetime.strptime(time_maybe, "%Y%m%dT%H%M%S,%f").time()
+                            time = dt.datetime.strptime(
+                                time_maybe, "%Y%m%dT%H%M%S,%f"
+                            ).time()
                         else:
                             time = None
                         # >>> Parse respondet data.
@@ -132,7 +136,7 @@ class RundownParser:
                                 ("station", station_id),
                                 ("date", date),
                                 ("block", hour_block),
-                                ("time",  time),
+                                ("time", time),
                                 ("duration", duration),
                                 ("target", target),
                                 ("itemcode", itemcode),
@@ -155,7 +159,11 @@ class RundownParser:
                                 # ("affiliation", affiliation),
                             ]
                         )
-                        yield { k: str(v).strip() for k, v in result.items() if v is not None }
+                        yield {
+                            k: str(v).strip()
+                            for k, v in result.items()
+                            if v is not None
+                        }
 
         except Exception as ex:
             logger.error(ex)
@@ -202,7 +210,11 @@ class RundownParser:
 
     def _extract_date(self, element) -> Optional[str]:
         text = self._extract_text(element, "./OM_FIELD[@FieldID='1000']/OM_DATETIME")
-        return (text if text is None else str(datetime.datetime.strptime(text.split("T")[0], "%Y%m%d").date()))
+        return (
+            text
+            if text is None
+            else str(datetime.datetime.strptime(text.split("T")[0], "%Y%m%d").date())
+        )
 
     def _extract_time(self, element: ET.Element) -> Optional[str]:
         return self._extract_text(element, "./OM_FIELD[@FieldID='1003']/OM_DATETIME")
@@ -217,7 +229,7 @@ class RundownParser:
         return self._extract_text(element, "./OM_FIELD[@FieldID='5081']/OM_INT32")
 
     def _extract_author(self, element: ET.Element) -> Optional[str]:
-        return self._extract_text(element,"./OM_FIELD[@FieldID='6']/OM_STRING")
+        return self._extract_text(element, "./OM_FIELD[@FieldID='6']/OM_STRING")
 
     def _extract_creator(self, element: ET.Element) -> Optional[str]:
         return self._extract_text(element, "./OM_FIELD[@FieldID='5']/OM_STRING")

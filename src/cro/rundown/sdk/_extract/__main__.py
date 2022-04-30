@@ -6,9 +6,9 @@ The module with command line program.
 
 
 import argparse
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from time import time
-import xml.etree.ElementTree as ET
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -54,8 +54,11 @@ def main():
 
     parser = RundownParser()
     result: dict[str, list] = {}
-    paths = (p for p in Path(import_path).glob("**/*.xml") \
-        if p.is_file() and any(s in p.stem for s in ("Plus", "Radiožurnál")))
+    paths = (
+        p
+        for p in Path(import_path).glob("**/*.xml")
+        if p.is_file() and any(s in p.stem for s in ("Plus", "Radiožurnál"))
+    )
 
     # ################################################################### #
     # [2] Parse XML files.                                                #
@@ -69,9 +72,26 @@ def main():
         # ################################################################### #
 
         df = pd.DataFrame([x for x in flatten(result.values()) if len(x) > 0])
-        df = df[["station", "date", "block", "duration", "format", "target",
-                 "itemcode", "incode", "topic", "creator", "author", "editorial",
-                 "approved_station", "approved_editorial", "title", "subtitle"]]
+        df = df[
+            [
+                "station",
+                "date",
+                "block",
+                "duration",
+                "format",
+                "target",
+                "itemcode",
+                "incode",
+                "topic",
+                "creator",
+                "author",
+                "editorial",
+                "approved_station",
+                "approved_editorial",
+                "title",
+                "subtitle",
+            ]
+        ]
 
         print("---\n")
         print(df.size)
@@ -83,14 +103,24 @@ def main():
         output_file_path = export_path / output_file_name
 
         with pd.ExcelWriter(output_file_path) as writer:
-            df.to_excel(writer, sheet_name=f"RUNDOWN_{date_min}_{date_max}", index=False, header = True)
+            df.to_excel(
+                writer,
+                sheet_name=f"RUNDOWN_{date_min}_{date_max}",
+                index=False,
+                header=True,
+            )
 
         logger.info("FINISHED with SUCCESS")
 
     except IOError as ex:
         # Save the file at least to the root folder.
         with pd.ExcelWriter(path := Path(output_file_name)) as writer:
-            df.to_excel(writer, sheet_name=f"SOURCE_{date_min}_{date_max}", index=False, header = True)
+            df.to_excel(
+                writer,
+                sheet_name=f"SOURCE_{date_min}_{date_max}",
+                index=False,
+                header=True,
+            )
             logger.warning(f"The file was writen to {path}.")
 
     except Exception as ex:

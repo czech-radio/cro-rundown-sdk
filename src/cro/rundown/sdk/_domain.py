@@ -29,7 +29,7 @@ class NonEmptyString:
 
 Name = str
 GivenName = str
-FamilyName =  str
+FamilyName = str
 Label = str
 
 
