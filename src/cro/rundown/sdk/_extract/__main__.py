@@ -1,21 +1,25 @@
 # -*- coding: utf-8 -*-
 
+"""
+The module with command line program.
+"""
+
 
 import argparse
-import os
 from pathlib import Path
-import logging
 from time import time
 import xml.etree.ElementTree as ET
-
 
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 from tqdm import tqdm
 
-
 from cro.rundown.sdk import RundownParser
+
+
+def flatten(t):
+    return [item for sublist in t for item in sublist]
 
 
 def main():
@@ -27,98 +31,68 @@ def main():
 
     parser = argparse.ArgumentParser(description="The `cro.rundown.extract` program.")
 
-    parser.add_argument(
-        "-w", "--week", required=True, help="A week number in form `MM`."
-    )
+    parser.add_argument("-i", "--input", required=True, help="The import directory.")
 
-    # TODO: month | period
-
-    parser.add_argument(
-        "-y", "--year", required=True, help="A year number in form `YYYY`."
-    )
+    parser.add_argument("-o", "--output", required=True, help="The export directory.")
 
     parser.add_argument("--verbose", action="store_true")
 
     options = parser.parse_args()
 
-    year: int = options.year
-    week: int = (
-        f"0{options.week}" if int(options.week) < 9 else options.week
-    )
+    # ################################################################### #
+    # [1] Load XML files in the given path.                               #
+    # ################################################################### #
+    import_path = Path(options.input)
+    export_path = Path(options.output)
 
+    # if not import_path.is_dir(): raise ValueError("The given import path must be a directory.")
+    # if not export_path.is_dir(): raise ValueError("The given export path must be a directory.")
+
+    if options.verbose:
+        logger.info(f"RUNDOWN IMPORT PATH: {import_path}")
+        logger.info(f"RUNDOWN EXPORT PATH: {export_path}")
+
+    parser = RundownParser()
+    result: dict[str, list] = {}
+    paths = (p for p in Path(import_path).glob("**/*.xml") \
+        if p.is_file() and any(s in p.stem for s in ("Plus", "Radiožurnál")))
+
+    # ################################################################### #
+    # [2] Parse XML files.                                                #
+    # ################################################################### #
     try:
+        for path in tqdm(paths):
+            result[path.stem] = list(parser(ET.parse(path)))
 
-        # TODO: Check the paths, maybe set sensible defaults?
-        import_path = Path(f"{os.getenv('RUNDOWN_IMPORT_PATH_TEST_LOCAL')}/{year}/W{week}")
-        export_path = Path(f"{os.getenv('RUNDOWN_EXPORT_PATH_TEST_LOCAL')}/{year}/W{week}")
+        # ################################################################### #
+        # [3] Write CSV/XLSX files.                                           #
+        # ################################################################### #
 
-        if options.verbose:
-            print(f"RUNDOWN IMPORT PATH: {import_path}")
-            print(f"RUNDOWN EXPORT PATH: {export_path}")
+        df = pd.DataFrame([x for x in flatten(result.values()) if len(x) > 0])
+        df = df[["station", "date", "block", "duration", "format", "target",
+                 "itemcode", "incode", "topic", "creator", "author", "editorial",
+                 "approved_station", "approved_editorial", "title", "subtitle"]]
 
-        #
-        # [1] Parse XML files.
-        #
+        print("---\n")
+        print(df.size)
+        print(date_min := df["date"].min())
+        print(date_max := df["date"].max())
+        print("\n---")
 
-        # if int(week) < 9: week = f"0{week}" # Prepend with zero when.
-
-        # Note thath the path depends on your locale e.g. G:\My Drive vs G:\Můj disk
-        output_file_name = f"DATA_{year}W{week}.xlsx"
+        output_file_name = f"RUNDOWN_{date_min}_{date_max}.xlsx"
         output_file_path = export_path / output_file_name
 
-        parser = RundownParser()
-
-        result: dict[str, list] = {}
-
-        # if not directory.is_dir():
-        #     raise ValueError("The given path  must be a directory.")
-
-        # Load all rundown XML files in the given path (recursively)
-        rundowns = {
-            path.stem: ET.parse(path) for path in Path(import_path).glob("**/*.xml") if path.is_file()
-        }
-
-        with tqdm() as pbar:
-            start_time = time()
-            for file, data in parser(rundowns):
-                if data is None:
-                    pbar.write(f"PROCESSING FILE FAILURE: {file}")
-                else:
-                    result[data.values()] = data
-                    finish_time = time() - start_time
-                    pbar.write(f"PROCESSING FILE SUCCESS: {file} in {finish_time} seconds.")
-                # pbar.update(1)
-
-        if parser.has_errors():
-            logger.error(parser.errors)
-
-        #
-        # [2] Write CSV and XLSX files.
-        #
-
-        # TODO Report and remove empty lists from result data.
-        df = pd.DataFrame([x for x in result.values() if len(x) > 0])
-
         with pd.ExcelWriter(output_file_path) as writer:
-            df.to_excel(writer, sheet_name=f"SOURCE_W{week}", index=False, header = True)
+            df.to_excel(writer, sheet_name=f"RUNDOWN_{date_min}_{date_max}", index=False, header = True)
 
         logger.info("FINISHED with SUCCESS")
 
     except IOError as ex:
-        # Save the file to the root folder when Google Drive fails.
-        # This is better then start from beginning :/
-        try:
-            df.to_excel(
-                Path("./") / output_file_name,
-                sheet_name=f"SOURCE_W{week}",
-                index=False,
-            )
-            logger.warning(f"The file was writen to the root folder: {ex}.")
-        except Exception as ex:
-            raise ex
+        # Save the file at least to the root folder.
+        with pd.ExcelWriter(path := Path(output_file_name)) as writer:
+            df.to_excel(writer, sheet_name=f"SOURCE_{date_min}_{date_max}", index=False, header = True)
+            logger.warning(f"The file was writen to {path}.")
 
     except Exception as ex:
-        logger.error(ex)
-        logger.info("FINISHED with FAILURE")
-    finally:
-        logger.info("=====================")
+        logger.error("FINISHED with FAILURE")
+        raise ex

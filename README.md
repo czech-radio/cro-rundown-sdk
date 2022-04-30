@@ -34,19 +34,20 @@ Use `cro.rundown.arrange` command to arrange the rundown files.
 
 Use `cro.rundown.cleanse` command to cleanse the rundown files.
 
-    cro.rundown.cleanse [--source]
+    cro.rundown.cleanse -i . -o .
 
 ### The `extract` command
 
 Use `cro.rundown.extract` command to extract data from rundown files.
 
-    cro.rundown.extract [--source]
+     cro.rundown.extract -i .\data\source\2021\W44\ -o .\data\target\2021\w44
+     cro.rundown.extract --input .\data\source\2021\W44\ --output .\data\target\2021\w44
 
 ### The `archive` command
 
 Use `cro.rundown.archive` command to archive data from rundown files.
 
-    cro.rundown.archive [--source]
+    cro.rundown.archive -i . -o .
 
 ## Installation
 
