@@ -30,11 +30,12 @@ Use `cro.rundown.arrange` command to arrange the rundown files.
     cro.rundown.arrange --source <path>                             e.g.
     cro.rundown.arrange --source \\cro.cz\srv\annova\export-avo
     
-    
+ The output of running command will look like this:
+ 
     PREPARE: Rundown 10
     100%|███████████████████████████████████████████████████████████████████████████████████████| 72/72 [00:10<00:00,  7.06it/s]
     100%|███████████████████████████████████████████████████████████████████████████████████████| 69/69 [00:12<00:00,  5.42it/s]
-     51%|████████████████████████████████████████████▏                                          | 35/69 [00:04<00:04,  8.41it/s]
+     51%|████████████████████████████████████████████                                           | 35/69 [00:04<00:04,  8.41it/s]
 
 
 ### The `cleanse` command
