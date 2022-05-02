@@ -7,7 +7,7 @@
 [![main](https://github.com/czech-radio/cro-rundown-sdk/actions/workflows/main.yml/badge.svg)](https://github.com/czech-radio/cro-rundown-sdk/actions/workflows/main.yml)
 [![reliability](https://sonarcloud.io/api/project_badges/measure?project=czech-radio_cro-rundown-sdk&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=czech-radio_cro-rundown-sdk)
 
-**Python library to work with Rozhlas rundowns.**
+**Python library and command line program to work with Rozhlas rundowns.**
 
 **DISCLAIMER:** Althougt we develop this package as open-source it is used internally for parsing specific type of
 XML file (know as _Rundown_) exported from OpenMedia broadcast system. Feel free to read the source code.
