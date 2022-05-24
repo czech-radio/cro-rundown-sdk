@@ -55,11 +55,8 @@ class RundownParser:
             date = self._extract_date(radio_rundown[0])
             hours_station_date: str = self._extract_station_date_hours(radio_rundown[0])
 
-            # [2] RADION RUNDOWN RECORDS
+            # [2] RADIO RUNDOWN RECORDS
             for record in (hourly_rundown_records := radio_rundown[1:]):
-
-                station_id = self._extract_station_id(record)
-                title = self._extract_title(record)
 
                 # [3] HOURLY RUNDOWN OBJECT
                 if (
@@ -77,19 +74,12 @@ class RundownParser:
                 # [4] HOURLY RUNDOWN RECORDS
                 for record in hourly_rundown_object.findall("./OM_RECORD"):
 
-                    author = self._extract_author(record)
-                    creator = self._extract_creator(record)
-                    editorial = self._extract_editorial(record)
-                    approved_station = self._extract_approved_station(record)
-                    approved_editorial = self._extract_approved_editorial(record)
-                    title = self._extract_title(record)
-                    topic = self._extract_topic(record)
-                    target = self._extract_target(record)
-
-                    # [5] RADIO STORY OBJECTS
-                    for obj in record.findall(
+                    # [5] RADIO STORY | SUB RUNDOWN OBJECTS
+                    for obj in (record.findall(
                         './/OM_OBJECT[@TemplateName="Radio Story"]'
-                    ):
+                    ) + record.findall(
+                        './/OM_OBJECT[@TemplateName="Sub Rundown"]'
+                    )):
                         header = obj.find("./OM_HEADER")
 
                         duration_maybe = self._extract_duration(header)
@@ -107,7 +97,7 @@ class RundownParser:
                         format = self._extract_format(header)
                         incode = self._extract_incode(header)
                         itemcode = self._extract_itemcode(header)
-                        subtitle = self._extract_title(header)
+                        title =  str(self._extract_title(record)).replace("===", "***")
 
                         time_maybe = self._extract_time(header)
                         if time_maybe is not None:
@@ -116,54 +106,67 @@ class RundownParser:
                             ).time()
                         else:
                             time = None
-                        # >>> Parse respondet data.
-                        # for om_object in record.findall(
-                        #     ".//OM_OBJECT[@TemplateName='Contact Item']"
-                        # ):
-                        #     openmedia_id = self._extract_unique_id(om_object)
-                        #     given_name = self._extract_given_name(om_object)
-                        #     family_name = self._extract_family_name(om_object)
-                        #     labels = self._extract_labels(om_object)
-                        #     gender = self._extract_gender(om_object)
-                        #     affiliation = self._extract_affiliation(om_object)
-                        # <<<
-                        result = OrderedDict(
-                            [
-                                # ANOVA DATA
-                                # ("oid", oid),
-                                # ("tn", otn),
-                                # BROADCAST DATA
-                                ("station", station_id),
-                                ("date", date),
-                                ("block", hour_block),
-                                ("time", time),
-                                ("duration", duration),
-                                ("target", target),
-                                ("itemcode", itemcode),
-                                ("incode", incode),
-                                ("title", title),
-                                ("subtitle", subtitle),
-                                ("format", format),
-                                ("author", author),
-                                ("creator", creator),
-                                ("editorial", editorial),
-                                ("approved_station", approved_station),
-                                ("approved_editorial", approved_editorial),
-                                ("topic", topic),
-                                # RESPONDENT DATA
-                                # ("openmedia_id", openmedia_id),
-                                # ("given_name", given_name),
-                                # ("family_name", family_name),
-                                # ("labels", labels),
-                                # ("gender", gender),
-                                # ("affiliation", affiliation),
-                            ]
-                        )
-                        yield {
-                            k: str(v).strip()
-                            for k, v in result.items()
-                            if v is not None
-                        }
+
+
+                        for record in obj.findall("./OM_RECORD"):
+                            target = self._extract_target(record)
+                            # >>> Parse respondet data.
+                            # for om_object in record.findall(
+                            #     ".//OM_OBJECT[@TemplateName='Contact Item']"
+                            # ):
+                            #     openmedia_id = self._extract_unique_id(om_object)
+                            #     given_name = self._extract_given_name(om_object)
+                            #     family_name = self._extract_family_name(om_object)
+                            #     labels = self._extract_labels(om_object)
+                            #     gender = self._extract_gender(om_object)
+                            #     affiliation = self._extract_affiliation(om_object)
+                            # <<<
+                            subtitle = str(self._extract_title(record)).replace("===", "***")
+                            station_id = self._extract_station_id(record)
+                            author = self._extract_author(record)
+                            creator = self._extract_creator(record)
+                            editorial = self._extract_editorial(record)
+                            approved_station = self._extract_approved_station(record)
+                            approved_editorial = self._extract_approved_editorial(record)
+                            topic = self._extract_topic(record)
+
+                            result = OrderedDict(
+                                [
+                                    # ANOVA DATA
+                                    # ("oid", oid),
+                                    # ("tn", otn),
+                                    # BROADCAST DATA
+                                    ("station", station_id),
+                                    ("date", date),
+                                    ("block", hour_block),
+                                    ("time", time),
+                                    ("duration", duration),
+                                    ("target", target),
+                                    ("itemcode", itemcode),
+                                    ("incode", incode),
+                                    ("title", title),
+                                    ("subtitle", subtitle),
+                                    ("format", format),
+                                    ("author", author),
+                                    ("creator", creator),
+                                    ("editorial", editorial),
+                                    ("approved_station", approved_station),
+                                    ("approved_editorial", approved_editorial),
+                                    ("topic", topic),
+                                    # RESPONDENT DATA
+                                    # ("openmedia_id", openmedia_id),
+                                    # ("given_name", given_name),
+                                    # ("family_name", family_name),
+                                    # ("labels", labels),
+                                    # ("gender", gender),
+                                    # ("affiliation", affiliation),
+                                ]
+                            )
+                            yield {
+                                k: str(v).strip()
+                                for k, v in result.items()
+                                if v is not None
+                            }
 
         except Exception as ex:
             logger.error(ex)

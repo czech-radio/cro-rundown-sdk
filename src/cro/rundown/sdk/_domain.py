@@ -66,31 +66,21 @@ class Record:
     respondents: tuple[Respondent]
 
 
+@dataclass(frozen = True)
 class Rundown:
     """
-    The rundown domain model.
+    The radio rundown domain model.
     """
+    date: dt.date
+    station: Station
+    cleaned_content: ElementTree
+    cleaned_name: str
+    original_name: Optional[str] = None
+    original_content: Optional[ElementTree] = None
 
-    def __init__(
-        self,
-        date,
-        station: Station,
-        cleaned_content: ElementTree,
-        cleaned_name: str,
-        original_name: Optional[str] = None,
-        original_content: Optional[ElementTree] = None,
-    ):
-        self.date = date
-        self.station = station
-        self.cleaned_name = cleaned_name
-        self.original_name = original_name
-        self.cleaned_content = cleaned_content
-        self.original_content = original_content
 
     @property
     def records(self) -> tuple[Record]:
         return tuple([])
 
-    # == equality
     # >  ordering
-    # hash
