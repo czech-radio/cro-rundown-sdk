@@ -79,6 +79,12 @@ def main():
         df = pd.DataFrame([x for x in flatten(result.values()) if len(x) > 0])
         df = df[
             [
+                "oid",
+                "rr_rid",
+                "hr_rid",
+                # "category1",
+                # "category2",
+                "category3",
                 "station",
                 "date",
                 "block",
@@ -93,8 +99,9 @@ def main():
                 "editorial",
                 "approved_station",
                 "approved_editorial",
-                "title",
-                "subtitle",
+                "title1",
+                "title2",
+                "title3",
             ]
         ]
 
