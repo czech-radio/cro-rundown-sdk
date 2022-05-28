@@ -38,15 +38,7 @@ jobs:
 
             - name: Check import order with 'isort'
               run: |
-<<<<<<< HEAD
-<<<<<<< HEAD
                   isort . --check
-=======
-                  isort -c -df -rc .
->>>>>>> e88e823 (Fix CI)
-=======
-                  isort . --check
->>>>>>> 0af09ca (Fix CI)
 
             - name: Lint the code
               run: |
