@@ -7,6 +7,7 @@ The module with command line program.
 
 import argparse
 import xml.etree.ElementTree as ET
+import sys
 from pathlib import Path
 from time import time
 
@@ -45,8 +46,12 @@ def main():
     import_path = Path(options.input)
     export_path = Path(options.output)
 
-    # if not import_path.is_dir(): raise ValueError("The given import path must be a directory.")
-    # if not export_path.is_dir(): raise ValueError("The given export path must be a directory.")
+    if not import_path.is_dir():
+        logger.error("The given import path must be a directory.")
+        sys.exit(1)
+    if not export_path.is_dir():
+        logger.error("The given export path must be a directory.")
+        sys.exit(1)
 
     if options.verbose:
         logger.info(f"RUNDOWN IMPORT PATH: {import_path}")
@@ -57,7 +62,7 @@ def main():
     paths = (
         p
         for p in Path(import_path).glob("**/*.xml")
-        if p.is_file() and any(s in p.stem for s in ("Plus", "Radiožurnál"))
+        if p.is_file() and any(s in p.stem for s in ("Plus", "Radiožurnál")) # [HARD CODED]
     )
 
     # ################################################################### #
@@ -74,6 +79,12 @@ def main():
         df = pd.DataFrame([x for x in flatten(result.values()) if len(x) > 0])
         df = df[
             [
+                "oid",
+                "rr_rid",
+                "hr_rid",
+                # "category1",
+                # "category2",
+                "category3",
                 "station",
                 "date",
                 "block",
@@ -88,8 +99,9 @@ def main():
                 "editorial",
                 "approved_station",
                 "approved_editorial",
-                "title",
-                "subtitle",
+                "title1",
+                "title2",
+                "title3",
             ]
         ]
 

@@ -48,49 +48,46 @@ class RundownParser:
 
             # [1] RADIO RUNDOWN OBJECT
             if (
-                radio_rundown := root.find("./OM_OBJECT[@TemplateName='Radio Rundown']")
+                radio_rundown := root.find(".//OM_OBJECT[@TemplateName='Radio Rundown']")
             ) is None:
                 return "RADIO RUNDOWN NOT FOUND"
 
-            date = self._extract_date(radio_rundown[0])
-            hours_station_date: str = self._extract_station_date_hours(radio_rundown[0])
+            date = self._extract_date(radio_rundown[0]) # [0] => first node = header
+            # hours_station_date: str = self._extract_station_date_hours(radio_rundown[0])
 
-            # [2] RADION RUNDOWN RECORDS
-            for record in (hourly_rundown_records := radio_rundown[1:]):
+            # [2] RADIO RUNDOWN RECORDS
+            for rr_record in radio_rundown.findall("./OM_RECORD"):
 
-                station_id = self._extract_station_id(record)
-                title = self._extract_title(record)
+                rr_record_id = rr_record.attrib["RecordID"]
 
                 # [3] HOURLY RUNDOWN OBJECT
                 if (
-                    hourly_rundown_object := record.find(
+                    hourly_rundown_object := rr_record.find(
                         "./OM_OBJECT[@TemplateName='Hourly Rundown']"
                     )
                 ) is None:
                     logger.error("NEOBSAHUJE HOURLY RUNDOWN")
                     continue  # or sys.exit(1) ?
 
-                oid = hourly_rundown_object.attrib["ObjectID"]
-                otn = hourly_rundown_object.attrib["TemplateName"]
                 hour_block = self._extract_station_hour_block(hourly_rundown_object)
 
+                category1 = hourly_rundown_object.attrib["TemplateName"]
+
                 # [4] HOURLY RUNDOWN RECORDS
-                for record in hourly_rundown_object.findall("./OM_RECORD"):
+                for hr_record in hourly_rundown_object.findall("./OM_RECORD"):
+                    title1 =  str(self._extract_title(hr_record)).replace("=", "")
+                    hr_record_id = hr_record.attrib["RecordID"]
 
-                    author = self._extract_author(record)
-                    creator = self._extract_creator(record)
-                    editorial = self._extract_editorial(record)
-                    approved_station = self._extract_approved_station(record)
-                    approved_editorial = self._extract_approved_editorial(record)
-                    title = self._extract_title(record)
-                    topic = self._extract_topic(record)
-                    target = self._extract_target(record)
 
-                    # [5] RADIO STORY OBJECTS
-                    for obj in record.findall(
-                        './/OM_OBJECT[@TemplateName="Radio Story"]'
-                    ):
+                    # [5] RADIO STORY | SUB RUNDOWN OBJECTS
+                    for obj in (hr_record.findall(
+                        './OM_OBJECT[@TemplateName="Radio Story"]'
+                    )):
+
                         header = obj.find("./OM_HEADER")
+
+                        oid = obj.attrib["ObjectID"]
+                        otn = obj.attrib["TemplateName"]
 
                         duration_maybe = self._extract_duration(header)
                         if duration_maybe is not None:
@@ -107,7 +104,16 @@ class RundownParser:
                         format = self._extract_format(header)
                         incode = self._extract_incode(header)
                         itemcode = self._extract_itemcode(header)
-                        subtitle = self._extract_title(header)
+                        title2 = str(self._extract_title(header)).replace("=", "")
+                        category2 = self._extract_text(header, "./OM_FIELD[@FieldID='5001']/OM_STRING")
+                        target = self._extract_target(header)
+                        station_id = self._extract_station_id(header)
+                        author = self._extract_author(header)
+                        creator = self._extract_creator(header)
+                        editorial = self._extract_editorial(header)
+                        approved_station = self._extract_approved_station(header)
+                        approved_editorial = self._extract_approved_editorial(header)
+                        topic = self._extract_topic(header)
 
                         time_maybe = self._extract_time(header)
                         if time_maybe is not None:
@@ -116,54 +122,66 @@ class RundownParser:
                             ).time()
                         else:
                             time = None
-                        # >>> Parse respondet data.
-                        # for om_object in record.findall(
-                        #     ".//OM_OBJECT[@TemplateName='Contact Item']"
-                        # ):
-                        #     openmedia_id = self._extract_unique_id(om_object)
-                        #     given_name = self._extract_given_name(om_object)
-                        #     family_name = self._extract_family_name(om_object)
-                        #     labels = self._extract_labels(om_object)
-                        #     gender = self._extract_gender(om_object)
-                        #     affiliation = self._extract_affiliation(om_object)
-                        # <<<
-                        result = OrderedDict(
-                            [
-                                # ANOVA DATA
-                                # ("oid", oid),
-                                # ("tn", otn),
-                                # BROADCAST DATA
-                                ("station", station_id),
-                                ("date", date),
-                                ("block", hour_block),
-                                ("time", time),
-                                ("duration", duration),
-                                ("target", target),
-                                ("itemcode", itemcode),
-                                ("incode", incode),
-                                ("title", title),
-                                ("subtitle", subtitle),
-                                ("format", format),
-                                ("author", author),
-                                ("creator", creator),
-                                ("editorial", editorial),
-                                ("approved_station", approved_station),
-                                ("approved_editorial", approved_editorial),
-                                ("topic", topic),
-                                # RESPONDENT DATA
-                                # ("openmedia_id", openmedia_id),
-                                # ("given_name", given_name),
-                                # ("family_name", family_name),
-                                # ("labels", labels),
-                                # ("gender", gender),
-                                # ("affiliation", affiliation),
-                            ]
-                        )
-                        yield {
-                            k: str(v).strip()
-                            for k, v in result.items()
-                            if v is not None
-                        }
+
+                        # [6]
+                        for rs_record in obj.findall(".//OM_RECORD"):
+                            logger.debug(f"Radio Rundown Record ID = {rr_record_id}, Hourly Rundown Record ID = {hr_record_id}, Radio Story Record ID {rs_record.attrib['RecordID']}")
+                            title3 = str(self._extract_title(rs_record)).replace("=", "")
+                            category3 = self._extract_text(rs_record, "./OM_FIELD[@FieldID='5001']/OM_STRING")
+                            # >>> Parse respondet data.
+                            # for om_object in record.findall(
+                            #     ".//OM_OBJECT[@TemplateName='Contact Item']"
+                            # ):
+                            #     openmedia_id = self._extract_unique_id(om_object)
+                            #     given_name = self._extract_given_name(om_object)
+                            #     family_name = self._extract_family_name(om_object)
+                            #     labels = self._extract_labels(om_object)
+                            #     gender = self._extract_gender(om_object)
+                            #     affiliation = self._extract_affiliation(om_object)
+                            # <<<
+                            result = OrderedDict(
+                                [
+                                    # ANOVA DATA
+                                    ("oid", oid),
+                                    ("rr_rid", rr_record_id),
+                                    ("hr_rid", hr_record_id),
+                                    ("category1", category1),
+                                    ("category2", category2),
+                                    ("category3", category3),
+                                    # ("tn", otn),
+                                    # BROADCAST DATA
+                                    ("station", station_id),
+                                    ("date", date),
+                                    ("block", hour_block),
+                                    ("time", time),
+                                    ("duration", duration),
+                                    ("target", target),
+                                    ("itemcode", itemcode),
+                                    ("incode", incode),
+                                    ("title1", title1),
+                                    ("title2", title2),
+                                    ("title3", title3),
+                                    ("format", format),
+                                    ("author", author),
+                                    ("creator", creator),
+                                    ("editorial", editorial),
+                                    ("approved_station", approved_station),
+                                    ("approved_editorial", approved_editorial),
+                                    ("topic", topic),
+                                    # RESPONDENT DATA
+                                    # ("openmedia_id", openmedia_id),
+                                    # ("given_name", given_name),
+                                    # ("family_name", family_name),
+                                    # ("labels", labels),
+                                    # ("gender", gender),
+                                    # ("affiliation", affiliation),
+                                ]
+                            )
+                            yield {
+                                k: str(v).strip()
+                                for k, v in result.items()
+                                if v is not None
+                            }
 
         except Exception as ex:
             logger.error(ex)

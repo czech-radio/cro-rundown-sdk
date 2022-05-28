@@ -38,6 +38,16 @@ Use `cro.rundown.arrange` command to arrange the rundown files.
      51%|████████████████████████████████████████████                                           | 35/69 [00:04<00:04,  8.41it/s]
 
 
+
+The example output:
+```
+PREPARE: Rundown 22
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 72/72 [00:05<00:00, 12.16it/s]
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 72/72 [00:05<00:00, 12.92it/s]
+ 86%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▋                      | 62/72 [00:04<00:00, 12.50it/s]
+
+```
+
 ### The `cleanse` command
 
 Use `cro.rundown.cleanse` command to cleanse the rundown files.
@@ -50,6 +60,15 @@ Use `cro.rundown.extract` command to extract data from rundown files.
 
      cro.rundown.extract -i .\data\source\2021\W44\ -o .\data\target\2021\w44
      cro.rundown.extract --input .\data\source\2021\W44\ --output .\data\target\2021\w44
+<<<<<<< HEAD
+
+### The `archive` command
+
+Use `cro.rundown.archive` command to archive data from rundown files.
+
+    cro.rundown.archive -i . -o .
+=======
+>>>>>>> be2477d (Simplify parsing)
 
 ### The `archive` command
 
