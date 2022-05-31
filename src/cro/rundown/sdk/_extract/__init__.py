@@ -48,19 +48,19 @@ class RundownParser:
 
             # [1] RADIO RUNDOWN OBJECT
             if (
-                radio_rundown := root.find(".//OM_OBJECT[@TemplateName='Radio Rundown']")
+                radio_rundown := root.find("./OM_OBJECT[@TemplateName='Radio Rundown']")
             ) is None:
                 return "RADIO RUNDOWN NOT FOUND"
 
             date = self._extract_date(radio_rundown[0]) # [0] => first node = header
             # hours_station_date: str = self._extract_station_date_hours(radio_rundown[0])
 
-            # [2] RADIO RUNDOWN RECORDS
+            # [2] RADIO RUNDOWN (HOURLY BLOCK) RECORDS
             for rr_record in radio_rundown.findall("./OM_RECORD"):
 
                 rr_record_id = rr_record.attrib["RecordID"]
 
-                # [3] HOURLY RUNDOWN OBJECT
+                # [3] HOURLY RUNDOWN OBJECT (one for each hourly block record)
                 if (
                     hourly_rundown_object := rr_record.find(
                         "./OM_OBJECT[@TemplateName='Hourly Rundown']"
@@ -78,10 +78,12 @@ class RundownParser:
                     title1 =  str(self._extract_title(hr_record)).replace("=", "")
                     hr_record_id = hr_record.attrib["RecordID"]
 
+                    # logger.debug(f"Radio Rundown Record ID = {rr_record_id}, Hourly Rundown Record ID = {hr_record_id}")
 
-                    # [5] RADIO STORY | SUB RUNDOWN OBJECTS
+
+                    # [5] RADIO STORY
                     for obj in (hr_record.findall(
-                        './OM_OBJECT[@TemplateName="Radio Story"]'
+                        './/OM_OBJECT[@TemplateName="Radio Story"]'
                     )):
 
                         header = obj.find("./OM_HEADER")
@@ -123,60 +125,68 @@ class RundownParser:
                         else:
                             time = None
 
-                        # [6]
-                        for rs_record in obj.findall(".//OM_RECORD"):
+                        result_part1 =  OrderedDict([
+                            # SYSTEM DATA
+                            ("oid", oid),
+                            # ("tn", otn),
+                            ("rr_rid", rr_record_id),
+                            ("hr_rid", hr_record_id),
+                            ("category1", category1),
+                            ("category2", category2),
+                            # BROADCAST DATA
+                            ("station", station_id),
+                            ("date", date),
+                            ("block", hour_block),
+                            ("time", time),
+                            ("duration", duration),
+                            ("target", target),
+                            ("itemcode", itemcode),
+                            ("incode", incode),
+                            ("title1", title1),
+                            ("title2", title2),
+                            ("format", format),
+                            ("author", author),
+                            ("creator", creator),
+                            ("editorial", editorial),
+                            ("approved_station", approved_station),
+                            ("approved_editorial", approved_editorial),
+                            ("topic", topic),
+                        ])
+
+                        result_parts2 = []
+                        # [6] // may not exist
+                        for rs_record in (rs_records := obj.findall("./OM_RECORD")):
                             logger.debug(f"Radio Rundown Record ID = {rr_record_id}, Hourly Rundown Record ID = {hr_record_id}, Radio Story Record ID {rs_record.attrib['RecordID']}")
                             title3 = str(self._extract_title(rs_record)).replace("=", "")
                             category3 = self._extract_text(rs_record, "./OM_FIELD[@FieldID='5001']/OM_STRING")
                             # >>> Parse respondet data.
-                            # for om_object in record.findall(
-                            #     ".//OM_OBJECT[@TemplateName='Contact Item']"
-                            # ):
-                            #     openmedia_id = self._extract_unique_id(om_object)
-                            #     given_name = self._extract_given_name(om_object)
-                            #     family_name = self._extract_family_name(om_object)
-                            #     labels = self._extract_labels(om_object)
-                            #     gender = self._extract_gender(om_object)
-                            #     affiliation = self._extract_affiliation(om_object)
+                            # if ".//OM_OBJECT[@TemplateName='Contact Item']"
+                            #   openmedia_id = self._extract_unique_id(om_object)
+                            #   given_name = self._extract_given_name(om_object)
+                            #   family_name = self._extract_family_name(om_object)
+                            #   labels = self._extract_labels(om_object)
+                            #   gender = self._extract_gender(om_object)
+                            #   affiliation = self._extract_affiliation(om_object)
                             # <<<
-                            result = OrderedDict(
-                                [
-                                    # ANOVA DATA
-                                    ("oid", oid),
-                                    ("rr_rid", rr_record_id),
-                                    ("hr_rid", hr_record_id),
-                                    ("category1", category1),
-                                    ("category2", category2),
-                                    ("category3", category3),
-                                    # ("tn", otn),
-                                    # BROADCAST DATA
-                                    ("station", station_id),
-                                    ("date", date),
-                                    ("block", hour_block),
-                                    ("time", time),
-                                    ("duration", duration),
-                                    ("target", target),
-                                    ("itemcode", itemcode),
-                                    ("incode", incode),
-                                    ("title1", title1),
-                                    ("title2", title2),
-                                    ("title3", title3),
-                                    ("format", format),
-                                    ("author", author),
-                                    ("creator", creator),
-                                    ("editorial", editorial),
-                                    ("approved_station", approved_station),
-                                    ("approved_editorial", approved_editorial),
-                                    ("topic", topic),
-                                    # RESPONDENT DATA
-                                    # ("openmedia_id", openmedia_id),
-                                    # ("given_name", given_name),
-                                    # ("family_name", family_name),
-                                    # ("labels", labels),
-                                    # ("gender", gender),
-                                    # ("affiliation", affiliation),
-                                ]
-                            )
+                            result_part2 = OrderedDict([
+                                # SYSTEM DATA
+                                ("category3", category3),
+                                # BROADCAST DATA
+                                ("itemcode", itemcode),
+                                ("title3", title3),
+                                # RESPONDENT DATA if contact item
+                                # ("openmedia_id", openmedia_id),
+                                # ("given_name", given_name),
+                                # ("family_name", family_name),
+                                # ("labels", labels),
+                                # ("gender", gender),
+                                # ("affiliation", affiliation),
+                            ])
+                            result_parts2.append(result_part2)
+
+                        results = [result_part1 | rp2 for rp2 in result_parts2] if len(result_parts2) else [result_part1 | {"category3": None, "title3": None}]
+
+                        for result in results:
                             yield {
                                 k: str(v).strip()
                                 for k, v in result.items()
