@@ -48,7 +48,7 @@ table_columns = [
     # "hr_rid",
     # "category1",
     # "category2",
-    "category", # aka category 3
+    "category",  # aka category 3
     "station",
     "date",
     "block",

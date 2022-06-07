@@ -19,10 +19,10 @@ from cro.rundown.sdk import RundownParser, table_columns
 from cro.rundown.sdk.helpers import flatten
 
 
-
 STATION_NAMES = {
-    "nationwide": (
-        "Plus", "Radiožurnál"), "regional": ("Olomouc", "Pardubice")} # not complete
+    "nationwide": ("Plus", "Radiožurnál"),
+    "regional": ("Olomouc", "Pardubice"),
+}  # not complete
 
 
 def main():
@@ -35,7 +35,12 @@ def main():
 
     parser.add_argument("-i", "--input", required=True, help="The import directory.")
     parser.add_argument("-o", "--output", required=True, help="The export directory.")
-    parser.add_argument("-s", "--station", required=False, help="The station type: nationwide | regional | all")
+    parser.add_argument(
+        "-s",
+        "--station",
+        required=False,
+        help="The station type: nationwide | regional | all",
+    )
     parser.add_argument("--verbose", action="store_true")
 
     options = parser.parse_args()
@@ -75,9 +80,10 @@ def main():
 
     result: dict[str, list] = {}
 
-    paths = (p for p in Path(import_path).glob("**/*.xml")
-        if p.is_file()
-        and  any(s in p.stem for s in STATION_NAMES)  # [HARD CODED]
+    paths = (
+        p
+        for p in Path(import_path).glob("**/*.xml")
+        if p.is_file() and any(s in p.stem for s in STATION_NAMES)  # [HARD CODED]
         # Use `any` vs `not any` for nationwide vs regional stations.
     )
 
@@ -89,7 +95,7 @@ def main():
         try:
             result[path.stem] = list(parser(ET.parse(path)))
         except Exception as ex:
-             errors.append((path.stem, ex))
+            errors.append((path.stem, ex))
 
     # ################################################################### #
     # [3] Write CSV/XLSX files.                                           #
