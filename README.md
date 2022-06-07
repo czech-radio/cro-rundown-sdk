@@ -3,9 +3,9 @@
 [RELEASES](https://github.com/czech-radio/cro-rundown-sdk/releases/) | [WEBSITE](https://czech-radio.github.io/cro-rundown-sdk/)
 
 ![language](https://img.shields.io/badge/language-Python_v3.10+-blue.svg)
-![version](https://img.shields.io/badge/version-0.3.0-blue.svg)
+![version](https://img.shields.io/badge/version-0.4.0-blue.svg)
 [![main](https://github.com/czech-radio/cro-rundown-sdk/actions/workflows/main.yml/badge.svg)](https://github.com/czech-radio/cro-rundown-sdk/actions/workflows/main.yml)
-[![reliability](https://sonarcloud.io/api/project_badges/measure?project=czech-radio_cro-rundown-sdk&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=czech-radio_cro-rundown-sdk)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/a3bf56105e2844a893fe1990866b5f73)](https://www.codacy.com/gh/czech-radio/cro-rundown-sdk/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=czech-radio/cro-rundown-sdk&amp;utm_campaign=Badge_Grade)
 
 **Python library and command line program to work with Rozhlas rundowns.**
 
@@ -29,9 +29,9 @@ Use `cro.rundown.arrange` command to arrange the rundown files.
 
     cro.rundown.arrange --source <path>                             e.g.
     cro.rundown.arrange --source \\cro.cz\srv\annova\export-avo
-    
+
  The output of running command will look like this:
- 
+
     PREPARE: Rundown 10
     100%|███████████████████████████████████████████████████████████████████████████████████████| 72/72 [00:10<00:00,  7.06it/s]
     100%|███████████████████████████████████████████████████████████████████████████████████████| 69/69 [00:12<00:00,  5.42it/s]
@@ -60,15 +60,12 @@ Use `cro.rundown.extract` command to extract data from rundown files.
 
      cro.rundown.extract -i .\data\source\2021\W44\ -o .\data\target\2021\w44
      cro.rundown.extract --input .\data\source\2021\W44\ --output .\data\target\2021\w44
-<<<<<<< HEAD
 
 ### The `archive` command
 
 Use `cro.rundown.archive` command to archive data from rundown files.
 
     cro.rundown.archive -i . -o .
-=======
->>>>>>> be2477d (Simplify parsing)
 
 ### The `archive` command
 

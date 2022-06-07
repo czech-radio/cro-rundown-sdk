@@ -66,18 +66,18 @@ class Record:
     respondents: tuple[Respondent]
 
 
-@dataclass(frozen = True)
+@dataclass(frozen=True)
 class Rundown:
     """
     The radio rundown domain model.
     """
+
     date: dt.date
     station: Station
     cleaned_content: ElementTree
     cleaned_name: str
     original_name: Optional[str] = None
     original_content: Optional[ElementTree] = None
-
 
     @property
     def records(self) -> tuple[Record]:

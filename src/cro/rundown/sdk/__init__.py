@@ -2,7 +2,7 @@
 
 from cro.rundown.sdk._arrange import inspect, organize
 from cro.rundown.sdk._cleanse import clean_rundown_content, clean_rundown_name
-from cro.rundown.sdk._extract import RundownParser
+from cro.rundown.sdk._extract import RundownParser, table_columns
 
 __all__ = tuple(
     [
@@ -14,4 +14,4 @@ __all__ = tuple(
     ]
 )
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
