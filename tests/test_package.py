@@ -6,7 +6,6 @@ Test the project as a package e.g. check the version, style etc.
 
 from cro.rundown.sdk import __version__
 
-
 EXPECTED_PACKAGE_VERSION = "0.4.0"
 
 

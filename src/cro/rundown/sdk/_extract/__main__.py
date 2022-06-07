@@ -18,7 +18,6 @@ from tqdm import tqdm
 from cro.rundown.sdk import RundownParser, table_columns
 from cro.rundown.sdk.helpers import flatten
 
-
 STATION_NAMES = {
     "nationwide": ("Plus", "Radiožurnál"),
     "regional": ("Olomouc", "Pardubice"),
