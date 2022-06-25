@@ -2,12 +2,12 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class ProcessFile:  # Command
-    name: str  # The name of the file to process.
-    timestamp: str  # The timestamp when the action was created.
+class ProcessRundownFile:  # Command
+    name: str  # The name of the rundown file to process.
+    created_at: str  # The timestamp when the action was created.
 
 
 @dataclass(frozen=True)
-class FileProcessed:  # Event
-    name: str  # The name of the processed file.
-    timestamp: str  # The timestamp when the event was created
+class RundownFileProcessed:  # Event
+    name: str  # The name of the processed rundown file.
+    created_at: str  # The timestamp when the event was created.
